@@ -38,6 +38,9 @@ typedef struct
   Field * v   ;
   Field * rho ;
   Field * mu  ;
+  Field * C   ;
+  Field * nx  ;
+  Field * ny  ;
 } Domain;
 
 void  Write_VTK(int,Domain,Constant);

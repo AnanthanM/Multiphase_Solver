@@ -42,7 +42,7 @@ void Write_VTK(int q,Domain domain,Constant constant)
     }
   }
   
-  fprintf(fp,"CELL_DATA %d\n SCALARS pressure double 1\n LOOKUP_TABLE default\n",N_cells);  
+  fprintf(fp,"CELL_DATA %d\n SCALARS pressure double \n LOOKUP_TABLE default\n",N_cells);  
   
   for(j = 0; j<N_cells_y ; j++)
   {
@@ -52,7 +52,36 @@ void Write_VTK(int q,Domain domain,Constant constant)
     }
   }
   
+  fprintf(fp,"SCALARS density double \n LOOKUP_TABLE default\n");  
   
+  for(j = 0; j<N_cells_y ; j++)
+  {
+    for(i = 0; i<N_cells_x; i++)
+    {
+      fprintf(fp,"%2.8lf\n",domain.rho->val[j*N_cells_x + i]);
+    }
+  }
+  
+  fprintf(fp,"SCALARS viscosity double \n LOOKUP_TABLE default\n");  
+  
+  for(j = 0; j<N_cells_y ; j++)
+  {
+    for(i = 0; i<N_cells_x; i++)
+    {
+      fprintf(fp,"%2.8lf\n",domain.mu->val[j*N_cells_x + i]);
+    }
+  }
+
+  fprintf(fp,"SCALARS Void_Fraction double \n LOOKUP_TABLE default\n");  
+  
+  for(j = 0; j<N_cells_y ; j++)
+  {
+    for(i = 0; i<N_cells_x; i++)
+    {
+      fprintf(fp,"%2.8lf\n",domain.C->val[j*N_cells_x + i]);
+    }
+  }
+
   fprintf(fp,"VECTORS velocity double \n");  
   
   for(j = 0; j<domain.v->N_y ; j++)
@@ -64,6 +93,16 @@ void Write_VTK(int q,Domain domain,Constant constant)
     }
   }
   
+  fprintf(fp,"VECTORS Normal double \n");  
+  
+  for(j = 0; j<domain.v->N_y ; j++)
+  {
+    for(i = 0; i<domain.u->N_x; i++)
+    {
+      fprintf(fp,"%2.8lf %2.8lf %2.8lf \n",domain.nx->val[j*domain.nx->N_x + i],
+                                       domain.ny->val[j*domain.ny->N_x + i], 0.0 );
+    }
+  }
   //  fprintf(fp,"%2.8lf %2.8lf %2.8lf\n", x.x, x.y, x.z);
   
   return;

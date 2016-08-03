@@ -44,3 +44,8 @@ $(OBDIR)Field_Allocation.o: Field_Allocation.c $(HEADER)
 clean: 		
 	rm -f *~
 	rm $(OBDIR)*.o
+
+Delete_Results: 		
+	rm -f *~
+	rm $(RUNDIR)/*.vtk
+	rm $(RUNDIR)/$(NAME)

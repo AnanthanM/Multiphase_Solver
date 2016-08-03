@@ -31,12 +31,18 @@ int main(int argc, char *argv[])
   Field * v    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * rho  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * mu   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * C    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * nx   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * ny   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   
   domain.p   = p;
   domain.u   = u;
   domain.v   = v;
   domain.rho = rho;
   domain.mu  = mu;
+  domain.C   = C;
+  domain.nx  = nx;
+  domain.ny  = ny;
 
   set_ghost_cells_type(domain);
 
@@ -52,6 +58,9 @@ int main(int argc, char *argv[])
     mu->BC_Value[i]  = 5;
     u->BC_Value[i]   = 10;
     v->BC_Value[i]   = 15;
+    C->BC_Value[i]   = 0;
+    nx->BC_Value[i]  = 0;
+    ny->BC_Value[i]  = 0;
   }
 
   p->BC_Value[XMAX] = 10000;
@@ -61,6 +70,9 @@ int main(int argc, char *argv[])
   set_ghost_cells_value(v);
   set_ghost_cells_value(rho);
   set_ghost_cells_value(mu);
+  set_ghost_cells_value(C);
+  set_ghost_cells_value(nx);
+  set_ghost_cells_value(ny);
 
   for(i =0;i < N_cells;i++)
   {
@@ -71,6 +83,9 @@ int main(int argc, char *argv[])
       v->val[i]   = 1.5; 
       rho->val[i] = 10; 
       mu->val[i]  = 0.5; 
+      C->val[i]   = 1.0; 
+      nx->val[i]  = 4.0; 
+      ny->val[i]  = 3.0; 
     }
   }
   

@@ -15,6 +15,9 @@ void set_ghost_cells_type(Domain domain)
   Field * v   = domain.v;
   Field * rho = domain.rho;
   Field * mu  = domain.mu;
+  Field * C   = domain.C;
+  Field * nx  = domain.nx;
+  Field * ny  = domain.ny;
 
   int N_Cells_x = p->N_x;
   int N_Cells_y = p->N_y;
@@ -32,6 +35,9 @@ void set_ghost_cells_type(Domain domain)
       rho->bc_type[l] = NEUMANN;
       u->bc_type[l]   = DIRICHLET;
       v->bc_type[l]   = DIRICHLET;     
+      C->bc_type[l]   = DIRICHLET;     
+      nx->bc_type[l]  = DIRICHLET;     
+      ny->bc_type[l]  = DIRICHLET;     
     }
     else
     {
@@ -40,6 +46,9 @@ void set_ghost_cells_type(Domain domain)
       rho->bc_type[l] = NONE;
       u->bc_type[l]   = NONE;
       v->bc_type[l]   = NONE;    
+      C->bc_type[l]   = NONE;     
+      nx->bc_type[l]  = NONE;     
+      ny->bc_type[l]  = NONE;     
     }
   }
 
