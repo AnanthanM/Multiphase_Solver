@@ -54,4 +54,6 @@ void set_ghost_cells_value(Field *);
 
 void Initiation_Void_Fraction(Domain,Constant);
 
+void Normals_Using_Youngs_Method(Domain,Constant);
+
 #endif

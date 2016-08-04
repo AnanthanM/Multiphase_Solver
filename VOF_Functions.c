@@ -93,13 +93,72 @@ void Initiation_Void_Fraction(Domain domain,Constant constant)
   return;
 } 
 
-
-
-
-
 /************************END*******************************************/
 
-/***********Function to Find Normals************************************/
+/*******************FIND NORMAL nx and ny using Youngs FD method*********/
+
+// Normal_x(i,j) = (1/dx)*{ C(i+1,j+1) + 2*C(i+1,j) + C(i+1,j-1) - C(i-1,j+1) - 2*C(i-1,j) - C(i-1,j-1) }
+  
+// Normal_y(i,j) = (1/dy)*{ C(i+1,j+1) + 2*C(i,j+1) + C(i-1,j+1) - C(i+1,j-1) - 2*C(i,j-1) - C(i-1,j-1) } 
+
+void Normals_Using_Youngs_Method(Domain domain,Constant constant)
+{
+  Field * C  = domain.C;
+  Field * nx = domain.nx;
+  Field * ny = domain.ny;
+
+  int N_cells_x = C->N_x;
+  int N_cells_y = C->N_y;
+  int N_cells   = N_cells_x * N_cells_y;
+  
+  double dx  = constant.dx;
+  double dy  = constant.dy;
+
+  int l;
+
+  double Cip1jp1,Cip1j,Cip1jm1,
+         Cijp1,Cijm1,
+         Cim1jp1,Cim1j,Cim1jm1;
+
+  for(l=0;l<N_cells;l++)
+  {
+    if(C->bc_type[l] == NONE)
+    {
+      Cip1jp1 = C->val[l+N_cells_x+1];
+      Cip1j   = C->val[l+1];
+      Cip1jm1 = C->val[l-N_cells_x+1];
+      Cijp1   = C->val[l+N_cells_x];
+      Cijm1   = C->val[l-N_cells_x];
+      Cim1jp1 = C->val[l+N_cells_x-1];
+      Cim1j   = C->val[l-1];
+      Cim1jm1 = C->val[l-N_cells_x-1];
+
+      nx->val[l] = (1/dx)*( Cip1jp1 + 2*Cip1j + Cip1jm1 - Cim1jp1 - 2*Cim1j - Cim1jm1 );
+      ny->val[l] = (1/dy)*( Cip1jp1 + 2*Cijp1 + Cim1jp1 - Cip1jm1 - 2*Cijm1 - Cim1jm1 );
+    }
+  }    
+
+  return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
   double L_x = 1.0;
   double L_y = 1.0;
   
-  int N_cells_x = 100+2;
-  int N_cells_y = 100+2;
+  int N_cells_x = 10+2;
+  int N_cells_y = 10+2;
   int N_cells_z = 1;
   int N_cells   = N_cells_x * N_cells_y * N_cells_z ;
 
@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
 
   Initiation_Void_Fraction(domain,constant);
 
+  Normals_Using_Youngs_Method(domain,constant);
+
   for(i =0;i < N_cells;i++)
   {
     if(p->bc_type[i] == NONE)
@@ -88,8 +90,8 @@ int main(int argc, char *argv[])
 //      C->val[i]   = Void_Fraction already initialised 
       rho->val[i] = 10.0*C->val[i] + 1.0*(1-C->val[i]);  
       mu->val[i]  = 3.0*C->val[i] + 0.3*(1-C->val[i]); 
-      nx->val[i]  = 4.0; 
-      ny->val[i]  = 3.0; 
+//      nx->val[i]  = Normal_x already found 
+//      ny->val[i]  = Normal_y already found
     }
   }
   
