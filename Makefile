@@ -2,7 +2,7 @@ NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
 RUNDIR	:= RUN
 
-OBJECTS =  $(OBDIR)Field_Allocation.o  $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o  $(OBDIR)FVM.o 
+OBJECTS =  $(OBDIR)Field_Allocation.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o 
 
 HEADER 	:=	fvm.h
 
@@ -10,7 +10,7 @@ INCPATH	=	-I ~/
 
 LIBPATH	= 	-L ~/
 
-LIBS	=	-lm 
+LIBS	=	-lm -lvofi
 
 CC	:=	gcc
 FLAGS	:=	  $(INCPATH) 
@@ -36,6 +36,10 @@ $(OBDIR)Set_Ghost_Cells.o: Set_Ghost_Cells.c $(HEADER)
 $(OBDIR)VTK_Output.o: VTK_Output.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
 	$(CC) -c $(FLAGS) -o $(OBDIR)VTK_Output.o VTK_Output.c
+
+$(OBDIR)VOF_Functions.o: VOF_Functions.c $(HEADER)
+	@test -d OBJ || mkdir OBJ        
+	$(CC) -c $(FLAGS) -o $(OBDIR)VOF_Functions.o VOF_Functions.c
 
 $(OBDIR)Field_Allocation.o: Field_Allocation.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        

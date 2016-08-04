@@ -15,14 +15,16 @@ int main(int argc, char *argv[])
   double L_x = 1.0;
   double L_y = 1.0;
   
-  int N_cells_x = 10+2;
-  int N_cells_y = 10+2;
+  int N_cells_x = 100+2;
+  int N_cells_y = 100+2;
   int N_cells_z = 1;
   int N_cells   = N_cells_x * N_cells_y * N_cells_z ;
- 
-  constant.dx = L_x/(N_cells_x-2);
-  constant.dy = L_y/(N_cells_y-2);
-  constant.dz = 1.0;
+
+  constant.L_x = L_x;
+  constant.L_y = L_y; 
+  constant.dx  = L_x/(N_cells_x-2);
+  constant.dy  = L_y/(N_cells_y-2);
+  constant.dz  = 1.0;
 
   constant.dt = 0.02;
 
@@ -58,7 +60,7 @@ int main(int argc, char *argv[])
     mu->BC_Value[i]  = 5;
     u->BC_Value[i]   = 10;
     v->BC_Value[i]   = 15;
-    C->BC_Value[i]   = 0;
+    C->BC_Value[i]   = 0.0;
     nx->BC_Value[i]  = 0;
     ny->BC_Value[i]  = 0;
   }
@@ -74,16 +76,18 @@ int main(int argc, char *argv[])
   set_ghost_cells_value(nx);
   set_ghost_cells_value(ny);
 
+  Initiation_Void_Fraction(domain,constant);
+
   for(i =0;i < N_cells;i++)
   {
     if(p->bc_type[i] == NONE)
     {
-      p->val[i]   = 100; 
-      u->val[i]   = 1; 
+      p->val[i]   = 100.0; 
+      u->val[i]   = 1.0; 
       v->val[i]   = 1.5; 
-      rho->val[i] = 10; 
-      mu->val[i]  = 0.5; 
-      C->val[i]   = 1.0; 
+//      C->val[i]   = Void_Fraction already initialised 
+      rho->val[i] = 10.0*C->val[i] + 1.0*(1-C->val[i]);  
+      mu->val[i]  = 3.0*C->val[i] + 0.3*(1-C->val[i]); 
       nx->val[i]  = 4.0; 
       ny->val[i]  = 3.0; 
     }

@@ -3,6 +3,7 @@
 
 typedef struct
 {
+  double L_x,L_y;
   double dx, dy, dz;
   double dt;
 } Constant; 
@@ -50,5 +51,7 @@ Field * Allocate_Field(int,int,int);
 void set_ghost_cells_type(Domain);
 
 void set_ghost_cells_value(Field *);
+
+void Initiation_Void_Fraction(Domain,Constant);
 
 #endif
