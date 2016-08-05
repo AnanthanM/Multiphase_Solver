@@ -102,8 +102,11 @@ int main(int argc, char *argv[])
   while(time < (final_time+constant.dt/2) ) 
   {
     Write_VTK(si_no,domain,constant);
+    
     printf("At time %2.8lf VTK file is written \n",time);
+    
     time += constant.dt;
+    
     si_no ++;
   }
 
