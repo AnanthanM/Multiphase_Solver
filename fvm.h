@@ -10,17 +10,17 @@ typedef struct
 
 typedef enum
 {
-  NONE,
-  DIRICHLET,
-  NEUMANN
+  ON_BOUNDARY,
+  INSIDE_GC,
+  NONE
 } BC_Type;
 
 typedef enum
 {
   XMIN,
   XMAX,
-  YMAX,
-  YMIN
+  YMIN,
+  YMAX
 } BC_Position;
 
 typedef struct
@@ -42,6 +42,8 @@ typedef struct
   Field * C   ;
   Field * nx  ;
   Field * ny  ;
+  Field * u_C ;
+  Field * v_C ;
 } Domain;
 
 void  Write_VTK(int,Domain,Constant);
@@ -55,5 +57,11 @@ void set_ghost_cells_value(Field *);
 void Initiation_Void_Fraction(Domain,Constant);
 
 void Normals_Using_Youngs_Method(Domain,Constant);
+
+void Advection_u(Domain,Constant,Field *);
+
+void Advection_v(Domain,Constant,Field *);
+
+void Making_u_v_Collocated(Domain,Constant);
 
 #endif

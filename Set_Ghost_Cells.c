@@ -19,39 +19,83 @@ void set_ghost_cells_type(Domain domain)
   Field * nx  = domain.nx;
   Field * ny  = domain.ny;
 
-  int N_Cells_x = p->N_x;
-  int N_Cells_y = p->N_y;
-  int N_Cells   = N_Cells_x*N_Cells_y;
+  //*******GHOSTS CELLS FOR COLOCATED VARIABLES***********
   
-  for(l=0;l<N_Cells;l++)
+  int N_Cells_x_p = p->N_x;
+  int N_Cells_y_p = p->N_y;
+  int N_Cells_p   = N_Cells_x_p*N_Cells_y_p;
+  
+  for(l=0;l<N_Cells_p;l++)
   {
-    i = l%N_Cells_x;
-    j = (int) l/N_Cells_x;
+    i = l%N_Cells_x_p;
+    j = (int) l/N_Cells_x_p;
 
-    if( i == 0 || i == (N_Cells_x-1) || j == 0 || j == (N_Cells_y-1) )
+    if( i == 0 || i == (N_Cells_x_p-1) || j == 0 || j == (N_Cells_y_p-1) )
     {
-      p->bc_type[l]   = NEUMANN;
-      mu->bc_type[l]  = NEUMANN;
-      rho->bc_type[l] = NEUMANN;
-      u->bc_type[l]   = DIRICHLET;
-      v->bc_type[l]   = DIRICHLET;     
-      C->bc_type[l]   = DIRICHLET;     
-      nx->bc_type[l]  = DIRICHLET;     
-      ny->bc_type[l]  = DIRICHLET;     
+      p->bc_type[l]   = INSIDE_GC;
+      mu->bc_type[l]  = INSIDE_GC;
+      rho->bc_type[l] = INSIDE_GC;           
+      C->bc_type[l]   = INSIDE_GC;     
+      nx->bc_type[l]  = INSIDE_GC;     
+      ny->bc_type[l]  = INSIDE_GC;     
     }
     else
     {
       p->bc_type[l]   = NONE; 
       mu->bc_type[l]  = NONE;
       rho->bc_type[l] = NONE;
-      u->bc_type[l]   = NONE;
-      v->bc_type[l]   = NONE;    
       C->bc_type[l]   = NONE;     
       nx->bc_type[l]  = NONE;     
       ny->bc_type[l]  = NONE;     
     }
   }
+  
+  //******GHOSTS CELLS FOR VARIABLE u ***********************
+  
+  int N_Cells_x_u = u->N_x;
+  int N_Cells_y_u = u->N_y;
+  int N_Cells_u   = N_Cells_x_u*N_Cells_y_u;
+  
+  for(l=0;l<N_Cells_u;l++)
+  {
+    i = l%N_Cells_x_u;
+    j = (int) l/N_Cells_x_u;
 
+    u->bc_type[l]   = NONE; 
+    
+    if( i == 0 || i == (N_Cells_x_u-1) ) // WEST  side or EAST  side
+    {
+      u->bc_type[l]   = ON_BOUNDARY;
+    }
+    if( j == 0 || j == (N_Cells_y_u-1) ) // SOUTH side or NORTH side
+    {
+      u->bc_type[l]   = INSIDE_GC;
+    }
+  }
+  
+  //******GHOSTS CELLS FOR VARIABLE v ***********************
+  
+  int N_Cells_x_v = v->N_x;
+  int N_Cells_y_v = v->N_y;
+  int N_Cells_v   = N_Cells_x_v*N_Cells_y_v;
+  
+  for(l=0;l<N_Cells_v;l++)
+  {
+    i = l%N_Cells_x_v;
+    j = (int) l/N_Cells_x_v;
+
+    v->bc_type[l]   = NONE;
+
+    if( i == 0 || i == (N_Cells_x_v-1) ) // WEST  side or EAST  side
+    {
+      v->bc_type[l]   = INSIDE_GC;
+    }
+    if( j == 0 || j == (N_Cells_y_v-1) ) // SOUTH side or NORTH side
+    {
+      v->bc_type[l]   = ON_BOUNDARY;
+    }
+  }
+  
   return;
 
 }

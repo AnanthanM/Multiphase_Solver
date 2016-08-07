@@ -6,6 +6,13 @@
 
 #include "fvm.h"
 
+#define RHO1 1      //For which C = 1
+#define RHO2 1      //For which C = 0
+#define MU1  0.0025 //For which C = 1
+#define MU2  0.0025 //For which C = 0
+#define g_x  0.0    //Body forces in x-direction
+#define g_y  10.0   //Body forces in y direction
+
 
 int main(int argc, char *argv[])
 {
@@ -15,10 +22,12 @@ int main(int argc, char *argv[])
   double L_x = 1.0;
   double L_y = 1.0;
   
-  int N_cells_x = 10+2;
-  int N_cells_y = 10+2;
-  int N_cells_z = 1;
-  int N_cells   = N_cells_x * N_cells_y * N_cells_z ;
+  int N_cells_x   = 5+2; //For the entire domain i.e for p,mu.rho.C,nx,ny
+  int N_cells_x_u = N_cells_x -1;//For staggered u velocity
+  int N_cells_y   = 5+2; //For the entire domain i.e for p,mu.rho.C,nx,ny
+  int N_cells_y_v = N_cells_y -1;//For staggered v velocity
+  int N_cells_z   = 1;
+  int N_cells     = N_cells_x * N_cells_y * N_cells_z ;
 
   constant.L_x = L_x;
   constant.L_y = L_y; 
@@ -29,8 +38,15 @@ int main(int argc, char *argv[])
   constant.dt = 0.02;
 
   Field * p    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
-  Field * u    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
-  Field * v    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+
+  Field * u    = Allocate_Field( N_cells_x_u, N_cells_y, N_cells_z );
+  Field * u_T  = Allocate_Field( N_cells_x_u, N_cells_y, N_cells_z ); 
+  
+  Field * v    = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z );
+  Field * v_T  = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z ); 
+  
+  Field * u_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );    // Collocated u and v values for
+  Field * v_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );    // plotting purposes
   Field * rho  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * mu   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * C    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
@@ -45,6 +61,8 @@ int main(int argc, char *argv[])
   domain.C   = C;
   domain.nx  = nx;
   domain.ny  = ny;
+  domain.u_C = u_C;
+  domain.v_C = v_C;
 
   set_ghost_cells_type(domain);
 
@@ -55,19 +73,19 @@ int main(int argc, char *argv[])
 // i = 3 -> YMAX -> top
   for(i=0;i<4;i++)
   {
-    p->BC_Value[i]   = 1000;
-    rho->BC_Value[i] = 100;
-    mu->BC_Value[i]  = 5;
-    u->BC_Value[i]   = 10;
-    v->BC_Value[i]   = 15;
+//   p->BC_Value[i]    For Staggered grid we dont need value of pressure at ghost cells
+    rho->BC_Value[i] = RHO2;
+    mu->BC_Value[i]  = MU2;
+    u->BC_Value[i]   = 0.0;
+    v->BC_Value[i]   = 0.0;
     C->BC_Value[i]   = 0.0;
-    nx->BC_Value[i]  = 0;
-    ny->BC_Value[i]  = 0;
+    nx->BC_Value[i]  = 0.0;
+    ny->BC_Value[i]  = 0.0;
   }
+  
+  u->BC_Value[XMIN] = 1;
 
-  p->BC_Value[XMAX] = 10000;
-
-  set_ghost_cells_value(p);
+//  set_ghost_cells_value(p); GCs values not needed for p
   set_ghost_cells_value(u);
   set_ghost_cells_value(v);
   set_ghost_cells_value(rho);
@@ -76,31 +94,66 @@ int main(int argc, char *argv[])
   set_ghost_cells_value(nx);
   set_ghost_cells_value(ny);
 
-  Initiation_Void_Fraction(domain,constant);
+//  Initiation_Void_Fraction(domain,constant);
 
-  Normals_Using_Youngs_Method(domain,constant);
+// Normals_Using_Youngs_Method(domain,constant);
+
 
   for(i =0;i < N_cells;i++)
   {
     if(p->bc_type[i] == NONE)
     {
-      p->val[i]   = 100.0; 
-      u->val[i]   = 1.0; 
-      v->val[i]   = 1.5; 
+      p->val[i]   = 0.0; 
 //      C->val[i]   = Void_Fraction already initialised 
-      rho->val[i] = 10.0*C->val[i] + 1.0*(1-C->val[i]);  
-      mu->val[i]  = 3.0*C->val[i] + 0.3*(1-C->val[i]); 
+      C->val[i]   = 0.0; 
+      rho->val[i] = RHO1*C->val[i] + RHO2*(1-C->val[i]);  
+      mu->val[i]  = MU1*C->val[i] + MU2*(1-C->val[i]); 
 //      nx->val[i]  = Normal_x already found 
 //      ny->val[i]  = Normal_y already found
+      nx->val[i]  = 0.0; 
+      ny->val[i]  = 0.0;
     }
   }
+
+  int N_cells_uv = u->N;
+  for(i=0;i < N_cells_uv;i++)
+  {
+    if(u->bc_type[i] == NONE)
+      u->val[i] = 0.0;
+    if(v->bc_type[i] == NONE)
+      v->val[i] = 0.0;
+  }
+
   
   double final_time = 1.0;
   double time       = 0.0;
 
   int si_no =0;
-  while(time < (final_time+constant.dt/2) ) 
-  {
+/*************/  
+  Write_VTK(20000000,domain,constant);
+  
+  int N_cells_u = u->N;
+  int N_cells_v = v->N;
+  double dt     = constant.dt;
+
+  while(time < (final_time+dt/2) ) 
+  { 
+    for(i=0;i<N_cells_u;i++)
+      u_T->val[i] = 0.0;
+    Advection_u(domain,constant,u_T);
+
+    for(i=0;i<N_cells_v;i++)
+      v_T->val[i] = 0.0;
+    Advection_v(domain,constant,v_T);
+     
+    for(i=0;i<N_cells_u;i++)
+    {
+       if(u->bc_type[i] == NONE)
+         u->val[i] = u->val[i] + dt*(u_T->val[i]) ;    
+       if(u->bc_type[i] == NONE)
+         v->val[i] = v->val[i] + dt*(v_T->val[i]) ;
+    }
+    
     Write_VTK(si_no,domain,constant);
     
     printf("At time %2.8lf VTK file is written \n",time);

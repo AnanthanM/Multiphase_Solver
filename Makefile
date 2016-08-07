@@ -2,7 +2,7 @@ NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
 RUNDIR	:= RUN
 
-OBJECTS =  $(OBDIR)Field_Allocation.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o 
+OBJECTS =  $(OBDIR)Field_Allocation.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o
 
 HEADER 	:=	fvm.h
 
@@ -44,6 +44,10 @@ $(OBDIR)VOF_Functions.o: VOF_Functions.c $(HEADER)
 $(OBDIR)Field_Allocation.o: Field_Allocation.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
 	$(CC) -c $(FLAGS) -o $(OBDIR)Field_Allocation.o Field_Allocation.c
+
+$(OBDIR)Advection.o: Advection.c $(HEADER)
+	@test -d OBJ || mkdir OBJ        
+	$(CC) -c $(FLAGS) -o $(OBDIR)Advection.o Advection.c
 
 clean: 		
 	rm -f *~
