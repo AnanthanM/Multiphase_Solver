@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
   double L_x = 1.0;
   double L_y = 1.0;
   
-  int N_cells_x   = 5+2; //For the entire domain i.e for p,mu.rho.C,nx,ny
+  int N_cells_x   = 140+2; //For the entire domain i.e for p,mu.rho.C,nx,ny
   int N_cells_x_u = N_cells_x -1;//For staggered u velocity
-  int N_cells_y   = 5+2; //For the entire domain i.e for p,mu.rho.C,nx,ny
+  int N_cells_y   = 140+2; //For the entire domain i.e for p,mu.rho.C,nx,ny
   int N_cells_y_v = N_cells_y -1;//For staggered v velocity
   int N_cells_z   = 1;
   int N_cells     = N_cells_x * N_cells_y * N_cells_z ;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   constant.dy  = L_y/(N_cells_y-2);
   constant.dz  = 1.0;
 
-  constant.dt = 0.02;
+  constant.dt = 0.002;
 
   Field * p    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     ny->BC_Value[i]  = 0.0;
   }
   
-  v->BC_Value[YMIN] = 1;
+  u->BC_Value[YMAX] = 1;
 
 // GCs values not needed for p
   set_ghost_cells_value(u);
@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
   }
 
   
-  double final_time = 1.0;
-  double time       = 0.0;
+  double final_time = 66.0;
+  double time       =  0.0;
 
 /******STARTING*******/  
   Write_VTK(0,domain,constant);
@@ -139,15 +139,20 @@ int main(int argc, char *argv[])
   while(time < (final_time+dt/2) ) 
   { 
 
-    /********ADVECTION*******************/
     for(i=0;i<N_cells_u;i++)
         u_T->val[i] = 0.0;
-    Advection_u(domain,constant,u_T);
 
     for(i=0;i<N_cells_v;i++)
         v_T->val[i] = 0.0;
+
+    /********ADVECTION*******************/
+    Advection_u(domain,constant,u_T);
     Advection_v(domain,constant,v_T);
-     
+   
+    /********DIFFUSION********************/
+    Diffusion_u(domain,constant,u_T);
+    Diffusion_v(domain,constant,v_T);
+
     for(i=0;i<N_cells_u;i++)
     {
        if(u->bc_type[i] == NONE)
@@ -155,11 +160,13 @@ int main(int argc, char *argv[])
        if(v->bc_type[i] == NONE)
          v->val[i] = v->val[i] + dt*(v_T->val[i]) ;
     }
-    
-    Write_VTK(si_no,domain,constant);
-    
-    printf("At time %2.8lf VTK file is written \n",time);
-    
+
+    if( (si_no-1)%5000 == 0)
+    {
+      Write_VTK(si_no,domain,constant); 
+      printf("At time %2.8lf VTK file is written \n",time);
+    }
+
     time += dt;
     
     si_no ++;

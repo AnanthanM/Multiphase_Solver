@@ -62,6 +62,10 @@ void Advection_u(Domain,Constant,Field *);
 
 void Advection_v(Domain,Constant,Field *);
 
+void Diffusion_u(Domain,Constant,Field *);
+
+void Diffusion_v(Domain,Constant,Field *);
+
 void Making_u_v_Collocated(Domain,Constant);
 
 #endif

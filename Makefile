@@ -2,7 +2,7 @@ NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
 RUNDIR	:= RUN
 
-OBJECTS =  $(OBDIR)Field_Allocation.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o
+OBJECTS =  $(OBDIR)Field_Allocation.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o $(OBDIR)Diffusion.o
 
 HEADER 	:=	fvm.h
 
@@ -12,8 +12,8 @@ LIBPATH	= 	-L ~/
 
 LIBS	=	-lm -lvofi
 
-CC	:=	gcc
-FLAGS	:=	  $(INCPATH) 
+CC	:=	gcc 
+FLAGS	:=	  $(INCPATH) -g
 LFLAGS	:=	$(LIBPATH) $(LIBS) 
 
 ####################################################################
@@ -48,6 +48,10 @@ $(OBDIR)Field_Allocation.o: Field_Allocation.c $(HEADER)
 $(OBDIR)Advection.o: Advection.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
 	$(CC) -c $(FLAGS) -o $(OBDIR)Advection.o Advection.c
+
+$(OBDIR)Diffusion.o: Diffusion.c $(HEADER)
+	@test -d OBJ || mkdir OBJ        
+	$(CC) -c $(FLAGS) -o $(OBDIR)Diffusion.o Diffusion.c
 
 clean: 		
 	rm -f *~
