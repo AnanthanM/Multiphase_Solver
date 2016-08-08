@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
   Field * v    = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z );
   Field * v_T  = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z ); 
   
-  Field * u_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );    // Collocated u and v values for
-  Field * v_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );    // plotting purposes
+  Field * u_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );    // Collocated u and v values 
+  Field * v_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );    // for plotting purposes
   Field * rho  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * mu   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * C    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 // i = 3 -> YMAX -> top
   for(i=0;i<4;i++)
   {
-//   p->BC_Value[i]    For Staggered grid we dont need value of pressure at ghost cells
+//  For Staggered grid we dont need value of pressure at ghost cells
     rho->BC_Value[i] = RHO2;
     mu->BC_Value[i]  = MU2;
     u->BC_Value[i]   = 0.0;
@@ -83,9 +83,9 @@ int main(int argc, char *argv[])
     ny->BC_Value[i]  = 0.0;
   }
   
-  u->BC_Value[XMIN] = 1;
+  v->BC_Value[YMIN] = 1;
 
-//  set_ghost_cells_value(p); GCs values not needed for p
+// GCs values not needed for p
   set_ghost_cells_value(u);
   set_ghost_cells_value(v);
   set_ghost_cells_value(rho);
@@ -128,29 +128,31 @@ int main(int argc, char *argv[])
   double final_time = 1.0;
   double time       = 0.0;
 
-  int si_no =0;
-/*************/  
-  Write_VTK(20000000,domain,constant);
+/******STARTING*******/  
+  Write_VTK(0,domain,constant);
   
+  int si_no     = 1;
   int N_cells_u = u->N;
   int N_cells_v = v->N;
   double dt     = constant.dt;
 
   while(time < (final_time+dt/2) ) 
   { 
+
+    /********ADVECTION*******************/
     for(i=0;i<N_cells_u;i++)
-      u_T->val[i] = 0.0;
+        u_T->val[i] = 0.0;
     Advection_u(domain,constant,u_T);
 
     for(i=0;i<N_cells_v;i++)
-      v_T->val[i] = 0.0;
+        v_T->val[i] = 0.0;
     Advection_v(domain,constant,v_T);
      
     for(i=0;i<N_cells_u;i++)
     {
        if(u->bc_type[i] == NONE)
          u->val[i] = u->val[i] + dt*(u_T->val[i]) ;    
-       if(u->bc_type[i] == NONE)
+       if(v->bc_type[i] == NONE)
          v->val[i] = v->val[i] + dt*(v_T->val[i]) ;
     }
     
@@ -158,7 +160,7 @@ int main(int argc, char *argv[])
     
     printf("At time %2.8lf VTK file is written \n",time);
     
-    time += constant.dt;
+    time += dt;
     
     si_no ++;
   }
