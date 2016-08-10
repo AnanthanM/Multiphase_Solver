@@ -1,3 +1,5 @@
+/*************** Diffusion *****************************************/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -5,6 +7,11 @@
 #include<stdbool.h>
 
 #include "fvm.h"
+
+//
+//Diffusion in u velocity
+//the result is updated to advection part in u_T
+//
 
 void Diffusion_u(Domain domain, Constant constant, Field * u_T)
 {
@@ -152,6 +159,12 @@ void Diffusion_u(Domain domain, Constant constant, Field * u_T)
   return; 
 
 }
+
+
+//
+//Diffusion in v velocity
+//the result is updated to advection part in v_T
+//
 
 void Diffusion_v(Domain domain, Constant constant, Field * v_T)
 {

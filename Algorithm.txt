@@ -1,0 +1,21 @@
+Non Preconditioned BiCGSTAB Algorithm
+  
+1  r0 = b − Ax0
+2  Choose an arbitrary vector r̂0 such that (r̂0, r0) ≠ 0, e.g., r̂0 = r0
+3  ρ0 = α = ω0 = 1
+4  v0 = p0 = 0
+   For j = 1, 2, 3, …
+5       ρj = (r̂0, rj−1)
+6       β = (ρj/ρj−1)(α/ωj−1)
+7       pj = rj−1 + β(pj−1 − ωj−1vj−1)
+8       vj = Apj
+9       α = ρj/(r̂0, vj)
+10      h = xj−1 + αpj
+11      If h is accurate enough, then set xj = h and quit
+12      s = rj−1 − αvj
+13      t = As
+14      ωj = (t, s)/(t, t)
+15      xj = h + ωjs
+16      If xj is accurate enough, then quit
+17      rj = s − ωjt
+

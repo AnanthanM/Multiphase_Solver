@@ -66,6 +66,14 @@ void Diffusion_u(Domain,Constant,Field *);
 
 void Diffusion_v(Domain,Constant,Field *);
 
+int  solve_Pressure_Poisson_BiCGSTAB(Field *,Field *,Constant,Domain); 
+
+void Get_RHS_of_Pressure_Poisson_Eqn(Domain,Field *,Constant);
+
+void Pressure_Poisson(Field *,Constant,double *,Domain);
+
+void Correction_Velocities(Domain,Constant);
+
 void Making_u_v_Collocated(Domain,Constant);
 
 #endif

@@ -1,3 +1,11 @@
+/********* File to Write OUTPUT in .vtk format***************
+ *
+ *Data for every variable is written in 
+ *colocated grid positions
+ *
+ *******************************************************/
+
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>

@@ -2,7 +2,7 @@ NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
 RUNDIR	:= RUN
 
-OBJECTS =  $(OBDIR)Field_Allocation.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o $(OBDIR)Diffusion.o
+OBJECTS =  $(OBDIR)Helper_Functions.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o $(OBDIR)Diffusion.o $(OBDIR)BiCGSTAB.o $(OBDIR)Pressure.o
 
 HEADER 	:=	fvm.h
 
@@ -41,9 +41,9 @@ $(OBDIR)VOF_Functions.o: VOF_Functions.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
 	$(CC) -c $(FLAGS) -o $(OBDIR)VOF_Functions.o VOF_Functions.c
 
-$(OBDIR)Field_Allocation.o: Field_Allocation.c $(HEADER)
+$(OBDIR)Helper_Functions.o: Helper_Functions.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
-	$(CC) -c $(FLAGS) -o $(OBDIR)Field_Allocation.o Field_Allocation.c
+	$(CC) -c $(FLAGS) -o $(OBDIR)Helper_Functions.o Helper_Functions.c
 
 $(OBDIR)Advection.o: Advection.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
@@ -52,6 +52,14 @@ $(OBDIR)Advection.o: Advection.c $(HEADER)
 $(OBDIR)Diffusion.o: Diffusion.c $(HEADER)
 	@test -d OBJ || mkdir OBJ        
 	$(CC) -c $(FLAGS) -o $(OBDIR)Diffusion.o Diffusion.c
+
+$(OBDIR)BiCGSTAB.o: BiCGSTAB.c $(HEADER)
+	@test -d OBJ || mkdir OBJ        
+	$(CC) -c $(FLAGS) -o $(OBDIR)BiCGSTAB.o BiCGSTAB.c
+
+$(OBDIR)Pressure.o: Pressure.c $(HEADER)
+	@test -d OBJ || mkdir OBJ        
+	$(CC) -c $(FLAGS) -o $(OBDIR)Pressure.o Pressure.c
 
 clean: 		
 	rm -f *~

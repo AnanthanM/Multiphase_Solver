@@ -1,3 +1,10 @@
+/****************************************************************************
+ *   
+ *   Boundary related functions where we set which type of ghost cell 
+ *   is there for Different Fields
+ *   
+ *****************************************************************************/   
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -5,6 +12,9 @@
 #include<stdbool.h>
 
 #include "fvm.h"
+
+// It takes input as the initialissed domain struct then assigns what kind of
+// Boundary type  is there in each ghost cell
 
 void set_ghost_cells_type(Domain domain)
 {
@@ -32,7 +42,7 @@ void set_ghost_cells_type(Domain domain)
 
     if( i == 0 || i == (N_Cells_x_p-1) || j == 0 || j == (N_Cells_y_p-1) )
     {
-      p->bc_type[l]   = INSIDE_GC;
+      p->bc_type[l]   = INSIDE_GC;       // means inside Ghost cell
       mu->bc_type[l]  = INSIDE_GC;
       rho->bc_type[l] = INSIDE_GC;           
       C->bc_type[l]   = INSIDE_GC;     
@@ -99,6 +109,9 @@ void set_ghost_cells_type(Domain domain)
   return;
 
 }
+
+// We call this function to set the Boundary cell
+// values for ghost cells for any input Field
 
 void set_ghost_cells_value(Field * phi)
 {

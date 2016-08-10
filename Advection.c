@@ -1,3 +1,5 @@
+/*****************Advection*****************************/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -5,6 +7,12 @@
 #include<stdbool.h>
 
 #include "fvm.h"
+
+/********* Advection of velocity u   ********************
+ *  
+ *  the advected u velocity is stored in u_T, a temporary array
+ *
+ * *********************************************************/
 
 void Advection_u(Domain domain, Constant constant, Field * u_T)
 {
@@ -107,6 +115,11 @@ void Advection_u(Domain domain, Constant constant, Field * u_T)
 }
 
 
+/********* Advection of velocity v   ********************
+ *  
+ *  the advected v velocity is stored in v_T, a temporary array
+ *
+ * *********************************************************/
 
 void Advection_v(Domain domain, Constant constant, Field * v_T)
 {
