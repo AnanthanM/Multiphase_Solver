@@ -41,9 +41,9 @@ int main(int argc, char *argv[])
   double L_y = 1.0;
   
   int N_cells_x   = 140+2;                                            //For the entire domain for colocated variables
-  int N_cells_x_u = N_cells_x -1;                                     //For staggered u velocity
+  int N_cells_x_u = N_cells_x - 1;                                     //For staggered u velocity
   int N_cells_y   = 140+2;                                            //For the entire domain for colocated variablesy
-  int N_cells_y_v = N_cells_y -1;                                     //For staggered v velocity
+  int N_cells_y_v = N_cells_y - 1;                                     //For staggered v velocity
   int N_cells_z   = 1;
   int N_cells     = N_cells_x * N_cells_y * N_cells_z ;               //Total Number of Colocated cells
 
@@ -68,23 +68,23 @@ int main(int argc, char *argv[])
   // ny  -> Normal component of interface in y
   
 
-  Field * p    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
-  Field * RHS  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   //Acts as RHS of Pressure Poisson equation
+  Field * p      = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * RHS    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   //Acts as RHS of Pressure Poisson equation
 
-  Field * u    = Allocate_Field( N_cells_x_u, N_cells_y, N_cells_z ); //Note no of cells in x direction is different 
-  Field * u_T  = Allocate_Field( N_cells_x_u, N_cells_y, N_cells_z ); 
+  Field * u      = Allocate_Field( N_cells_x_u, N_cells_y, N_cells_z ); //Note no of cells in x direction is different 
+  Field * ustar  = Allocate_Field( N_cells_x_u, N_cells_y, N_cells_z ); 
   
-  Field * v    = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z ); //Note no of cells in y direction is different
-  Field * v_T  = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z ); 
+  Field * v      = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z ); //Note no of cells in y direction is different
+  Field * vstar  = Allocate_Field( N_cells_x, N_cells_y_v, N_cells_z ); 
   
-  Field * u_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   // Collocated u and v values 
-  Field * v_C  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   // for plotting purposes
+  Field * u_C    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   // Collocated u and v values 
+  Field * v_C    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   // for plotting purposes
 
-  Field * rho  = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   // All other colocated variables 
-  Field * mu   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
-  Field * C    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
-  Field * nx   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
-  Field * ny   = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * rho    = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );   // All other colocated variables 
+  Field * mu     = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * C      = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * nx     = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  Field * ny     = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
  
   /*****Initialising the Domain struct***************/
 
@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
   for(i=0;i<4;i++)
   {
 //  For Staggered grid we dont need value of pressure at ghost cells
+    p->BC_Value[i]   = 0.0;
     rho->BC_Value[i] = RHO2;
     mu->BC_Value[i]  = MU2;
     u->BC_Value[i]   = 0.0;
@@ -127,6 +128,7 @@ int main(int argc, char *argv[])
 
 
 // GCs values not needed for p
+  set_ghost_cells_value(p);
   set_ghost_cells_value(u);
   set_ghost_cells_value(v);
   set_ghost_cells_value(rho);
@@ -186,25 +188,25 @@ int main(int argc, char *argv[])
   { 
 
     for(i=0;i<N_cells_u;i++)
-        u_T->val[i] = 0.0;
+        ustar->val[i] = 0.0;
 
     for(i=0;i<N_cells_v;i++)
-        v_T->val[i] = 0.0;
+        vstar->val[i] = 0.0;
 
     /********ADVECTION*******************/
-    Advection_u(domain,constant,u_T);
-    Advection_v(domain,constant,v_T);
+    Advection_u(domain,constant,ustar);
+    Advection_v(domain,constant,vstar);
     
     /********DIFFUSION********************/
-    Diffusion_u(domain,constant,u_T);
-    Diffusion_v(domain,constant,v_T);
+    Diffusion_u(domain,constant,ustar);
+    Diffusion_v(domain,constant,vstar);
 
     for(i=0;i<N_cells_u;i++)
     {
        if(u->bc_type[i] == NONE)
-         u->val[i] = u->val[i] + dt*(u_T->val[i]) ;    
+         u->val[i] = u->val[i] + dt*(ustar->val[i]) ;    
        if(v->bc_type[i] == NONE)
-         v->val[i] = v->val[i] + dt*(v_T->val[i]) ;
+         v->val[i] = v->val[i] + dt*(vstar->val[i]) ;
     }
     
     /******Solving Pressure Poisson ********/
@@ -231,6 +233,9 @@ int main(int argc, char *argv[])
     
     si_no ++;
   }
+
+  /***********Write Validation data**************/
+  Validation_Data(domain,constant); 
 
   return 0;
 }

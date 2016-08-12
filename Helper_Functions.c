@@ -140,6 +140,39 @@ void Making_u_v_Collocated(Domain domain,Constant constant)
 }
 
 
+void Validation_Data(Domain domain, Constant constant)
+{
+  char filename1[30];
+  char filename2[30];
+
+  sprintf(filename1, "line_data_u.dat");
+  sprintf(filename2, "line_data_v.dat");
+
+  FILE *fp1 = fopen(filename1, "w");
+  FILE *fp2 = fopen(filename2, "w");
+  
+  int N_y = domain.u_x->N_y;
+  int N_x = domain.u_y->N_x;
+  
+  int i,j,mid;
+
+  mid = (N_x-1)/2 + 2;
+  
+  for(j = 1; j <N_y-1; j ++)
+  {
+    i = N_x*j+mid;
+    fprintf(fp1, "%2.8lf \t %2.8lf \n", constant.dy*((j-1) + 0.5), domain.u_C->val[i]);
+  }
+  
+  mid = (N_y-1)/2 + 2;
+  
+  for(j = 1; j <N_x-1; j ++)
+  {
+    i = mid*N_x + j;
+    fprintf(fp2, "%2.8lf \t %2.8lf \n", constant.dx*((j-1) + 0.5), domain.v_C->val[i]);
+  }
+
+}
 
 
 

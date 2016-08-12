@@ -53,7 +53,7 @@ void Get_RHS_of_Pressure_Poisson_Eqn(Domain domain,Field * RHS,Constant constant
         vN = v->val[N];
         vS = v->val[S];
 
-        RHS->val[l] = (uE - uW)/dx + (vN - vS)/dy ;
+        RHS->val[l] = ( 1/(2*dt) ) * ( (uE - uW)/dx + (vN - vS)/dy ) ;
     }
     else
     {

@@ -130,11 +130,11 @@ void set_ghost_cells_value(Field * phi)
     {
       if(i==0)
         phi->val[l] = phi->BC_Value[XMIN];
-      else if(i==(N_Cells_x-1))
+      if(i==(N_Cells_x-1))
         phi->val[l] = phi->BC_Value[XMAX];
       if(j==0)
         phi->val[l] = phi->BC_Value[YMIN];
-      else if(j==(N_Cells_y-1))
+      if(j==(N_Cells_y-1))
         phi->val[l] = phi->BC_Value[YMAX];
     }
   }

@@ -94,12 +94,12 @@ void Write_VTK(int q,Domain domain,Constant constant)
 
   fprintf(fp,"VECTORS velocity double \n");  
   
-  for(j = 0; j<domain.v_C->N_y ; j++)
+  for(j = 0; j<N_cells_y ; j++)
   {
-    for(i = 0; i<domain.u_C->N_x; i++)
+    for(i = 0; i<N_cells_x; i++)
     {
-      fprintf(fp,"%2.8lf %2.8lf %2.8lf \n",domain.u_C->val[j*domain.u_C->N_x + i],
-                                       domain.v_C->val[j*domain.v_C->N_x + i], 0.0 );
+      fprintf(fp,"%2.8lf %2.8lf %2.8lf \n",domain.u_C->val[j*N_cells_x + i],
+                                       domain.v_C->val[j*N_cells_x + i], 0.0 );
     }
   }
   

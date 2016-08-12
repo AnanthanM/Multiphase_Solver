@@ -104,8 +104,8 @@ void Advection_u(Domain domain, Constant constant, Field * u_T)
             }
         }
   
-        u_T->val[l] = (1/dx)*( ((u_e+u_p)/2)*((u_e+u_p)/2) - ((u_p+u_w)/2)*((u_p+u_w)/2) ) + 
-                      (1/dy)*( ((u_n+u_p)/2)*((v_ne+v_nw)/2) - ((u_p+u_s)/2)*((v_se+v_sw)/2) );
+        u_T->val[l] = -1*( (1/dx)*( ((u_e+u_p)/2)*((u_e+u_p)/2) - ((u_p+u_w)/2)*((u_p+u_w)/2) ) + 
+                           (1/dy)*( ((u_n+u_p)/2)*((v_ne+v_nw)/2) - ((u_p+u_s)/2)*((v_se+v_sw)/2) ) ) ;
       
     }
   }
@@ -210,8 +210,8 @@ void Advection_v(Domain domain, Constant constant, Field * v_T)
             }
         }
   
-        v_T->val[l] = (1/dx)*( ((u_se+u_ne)/2)*((v_e+v_p)/2) - ((u_nw+u_sw)/2)*((v_p+v_w)/2) ) + 
-                      (1/dy)*( ((v_n+v_p)/2)*((v_n+v_p)/2) - ((v_p+v_s)/2)*((v_p+v_s)/2) );
+        v_T->val[l] = -1*(  (1/dx)*( ((u_se+u_ne)/2)*((v_e+v_p)/2) - ((u_nw+u_sw)/2)*((v_p+v_w)/2) ) + 
+                            (1/dy)*( ((v_n+v_p)/2)*((v_n+v_p)/2) - ((v_p+v_s)/2)*((v_p+v_s)/2) ) );
       
     }
   }

@@ -1,6 +1,6 @@
 NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
-RUNDIR	:= RUN
+RUNDIR	:= RUN_1000
 
 OBJECTS =  $(OBDIR)Helper_Functions.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o $(OBDIR)Diffusion.o $(OBDIR)BiCGSTAB.o $(OBDIR)Pressure.o
 
