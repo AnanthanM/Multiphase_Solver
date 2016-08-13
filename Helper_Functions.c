@@ -140,6 +140,9 @@ void Making_u_v_Collocated(Domain domain,Constant constant)
 }
 
 
+//Writing data at x and y crosssection of the domain
+//so that results can be plotted along with Ghia etal paper
+
 void Validation_Data(Domain domain, Constant constant)
 {
   char filename1[30];
@@ -151,8 +154,8 @@ void Validation_Data(Domain domain, Constant constant)
   FILE *fp1 = fopen(filename1, "w");
   FILE *fp2 = fopen(filename2, "w");
   
-  int N_y = domain.u_x->N_y;
-  int N_x = domain.u_y->N_x;
+  int N_y = domain.u_C->N_y;
+  int N_x = domain.u_C->N_x;
   
   int i,j,mid;
 

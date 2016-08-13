@@ -26,8 +26,8 @@
 
 #define RHO1 1      //For which C = 1
 #define RHO2 1      //For which C = 0
-#define MU1  0.001  //For which C = 1
-#define MU2  0.001  //For which C = 0
+#define MU1  0.01  //For which C = 1
+#define MU2  0.01  //For which C = 0
 #define g_x  0.0    //Body forces in x-direction
 #define g_y  10.0   //Body forces in y direction
 
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 
     /*********Writing Output*************************/
     printf("\n At %2.8lf N-S equations solved \n ",time);
-    if( (si_no-1)%500 == 0)
+    if( (si_no-1)%2 == 0)
     {
       Write_VTK(si_no,domain,constant); 
       printf("At time %2.8lf VTK file is written \n",time);
