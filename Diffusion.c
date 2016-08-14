@@ -55,9 +55,8 @@ void Diffusion_u(Domain domain, Constant constant, Field * u_T)
   
   int l,i,j;
 
-  int      N,S,E,W,                       //for u velocities
-           NW,NE,SE,SW,                   //for v velocities
-           C_NE,C_NW,C_E,C_W,C_SE,C_SW;   //for colocated variables(mu & rho) 
+  int row;
+
   double   uP,
            uN,uS,uE,uW,                    
            vNW,vNE,vSE,vSW,                
@@ -65,85 +64,111 @@ void Diffusion_u(Domain domain, Constant constant, Field * u_T)
            mu_N,mu_S,                         //interpolated mu values 
            rho_E,rho_W;
   
+  double   * val_uP,
+           * val_uN,* val_uS,* val_uE,* val_uW,                    
+           * val_vNW,* val_vNE,* val_vSE,* val_vSW,                
+           * val_mu_NE,* val_mu_NW,* val_mu_E,* val_mu_W,* val_mu_SE,* val_mu_SW, //actual mu values
+           * val_rho_E,* val_rho_W;
 
-  for(l = 0;l<N_cells_u;l++)
+
+  //BC Setup
+  
+  //West Side 
+  
+  i = 0;
+  for(j=0;j<Ny_u;j++)
   {
-    if(u->bc_type[l] == NONE)
+    l = j*Nx_u + i;
+    u->val[l] = u->BC_Value[XMIN];
+  }
+
+  //East Side 
+  
+  i = Nx_u - 1;
+  for(j=0;j<Ny_u;j++)
+  {
+    l = j*Nx_u + i;
+    u->val[l] = u->BC_Value[XMAX];
+  }
+  
+
+  //South side 
+
+  j = 0;
+  for(i=0;i<Nx_u;i++)
+  {
+    l = j*Nx_u + i;
+    u->val[l]   = (2*u->BC_Value[YMIN]) - u->val[l+Nx_u];
+    v->val[l+1] = v->BC_Value[YMIN];
+  }
+  
+  //North side 
+
+  j = Ny_u - 1;
+  for(i=0;i<Nx_u;i++)
+  {
+    l = j*Nx_u + i;
+    u->val[l]   = (2*u->BC_Value[YMAX]) - u->val[l-Nx_u];
+    v->val[l-1] = v->BC_Value[YMAX];
+  }
+  
+  // Loops for all the inner cells 
+  
+  for(j=1;j<(Ny_u-1);j++)
+  {
+    row = j*Nx_u;
+
+    val_uP = &u->val[row];
+    val_uE = &u->val[row+1];
+    val_uW = &u->val[row-1];
+    val_uN = &u->val[row+Nx_u];
+    val_uS = &u->val[row-Nx_u];
+
+    val_vNW = &v->val[row+j];
+    val_vNE = &v->val[row+j+1];
+    val_vSW = &v->val[row+j-Nx_v];
+    val_vSE = &v->val[row+j-Nx_v+1];
+
+    val_mu_W  = &mu->val[row+j];
+    val_mu_E  = &mu->val[row+j+1];
+    val_mu_NW = &mu->val[row+j+Nx_C];
+    val_mu_NE = &mu->val[row+j+Nx_C+1];
+    val_mu_SW = &mu->val[row+j-Nx_C];
+    val_mu_SE = &mu->val[row+j-Nx_C+1];
+    
+    val_rho_W  = &rho->val[row+j];
+    val_rho_E  = &rho->val[row+j+1];
+    
+    for(i=1;i<(Nx_u-1);i++)
     {
-        i = l%Nx_u;
-        j = (int) l/Nx_u;
-  
-        S = (j-1)*Nx_u + i;
-        N = (j+1)*Nx_u + i;
-        W = j*Nx_u + (i-1);      // or l-1
-        E = j*Nx_u + (i+1);      // or l+1
-  
-        NW =  l + j;
-        NE = NW + 1;
-        SW = NW - Nx_v;
-        SE = SW + 1;
+      l = j*Nx_u + i;
+     
+      uP = val_uP[i];
+      uE = val_uE[i];
+      uW = val_uW[i];
+      uN = val_uN[i];
+      uS = val_uS[i];
 
-        C_W  = l + j; 
-        C_NW = C_W + Nx_C;
-        C_NE = C_NW + 1;
-        C_E  = C_W + 1;
-        C_SE = C_E - Nx_C;
-        C_SW = C_SE - 1;     //for colocated variables(mu & rho) 
-  
-        uP = u->val[l];
-        
-        uE = u->val[E];
-        uW = u->val[W];
-        uN = u->val[N];
-        uS = u->val[S];
-  
-        vNE = v->val[NE];
-        vNW = v->val[NW];
-        vSE = v->val[SE];
-        vSW = v->val[SW];
-        
-        mu_NE = mu->val[C_NE];    
-        mu_NW = mu->val[C_NW];    
-        mu_E  = mu->val[C_E];  
-        mu_W  = mu->val[C_W]; 
-        mu_SE = mu->val[C_SE];  
-        mu_SW = mu->val[C_SW];        //actual mu values
-        
-        mu_N  = 0.25*( mu_NE + mu_NW + mu_W  + mu_E  );
-        mu_S  = 0.25*( mu_E  + mu_W  + mu_SW + mu_SE );                        //interpolated mu values 
-        
-        rho_E = rho->val[C_E];
-        rho_W = rho->val[C_W];
+      vNW = val_vNW[i];
+      vNE = val_vNE[i];
+      vSW = val_vSW[i];
+      vSE = val_vSE[i];
 
-        if( i == 1 || i == (Nx_u-2) || j == 1 || j == (Ny_u-2) ) // Next to boundary 
-        {
-            if(u->bc_type[N] != NONE)
-            {
-              uN  = (2* u->BC_Value[YMAX]) - uP;
-              vNW = v->BC_Value[YMAX];
-              vNE = v->BC_Value[YMAX];
-            }
-            if(u->bc_type[S] != NONE)
-            {
-              uS  = (2* u->BC_Value[YMIN]) - uP;
-              vSW = v->BC_Value[YMIN];
-              vSE = v->BC_Value[YMIN];
-            }
-            if(u->bc_type[W] != NONE)
-            { 
-  
-              uW  = u->BC_Value[XMIN];
-  
-            }
-            if(u->bc_type[E] != NONE)
-            {
-  
-              uE  = u->BC_Value[XMAX];
-  
-            }
-        }
-        
-        u_T->val[l] = u_T->val[l] + 
+      mu_W  = val_mu_W[i];  
+      mu_E  = val_mu_E[i];
+      mu_NW = val_mu_NW[i];
+      mu_NE = val_mu_NE[i];
+      mu_SW = val_mu_SW[i];
+      mu_SE = val_mu_SE[i];
+              
+      rho_W = val_rho_W[i];
+      rho_E = val_rho_E[i];
+
+      mu_N  = 0.25*( mu_NE + mu_NW + mu_W  + mu_E  );
+      mu_S  = 0.25*( mu_E  + mu_W  + mu_SW + mu_SE );                        //interpolated mu values 
+      
+
+      u_T->val[l] = u_T->val[l] + 
                       (
                       (2.0/(rho_E+rho_W))*
                       ( (1/dx)*( 2*mu_E*( (uE - uP)/dx ) - 
@@ -151,11 +176,10 @@ void Diffusion_u(Domain domain, Constant constant, Field * u_T)
                         (1/dy)*( mu_N*( ( (uN-uP)/dy ) + ( (vNE-vNW)/dx ) ) - 
                                  mu_S*( ( (uP-uS)/dy ) + ( (vSE-vSW)/dx ) ) ) )
                       );
-      
-    }
-  
-  }  
 
+
+    }
+  }
   return; 
 
 }
@@ -208,96 +232,120 @@ void Diffusion_v(Domain domain, Constant constant, Field * v_T)
   
   int l,i,j;
 
-  int      N,S,E,W,                       //for v velocities
-           NW,NE,SE,SW,                   //for u velocities
-           C_NE,C_NW,C_N,C_S,C_SE,C_SW;   //for colocated variables(mu & rho) 
+  int row;
+
   double   vP,
            vN,vS,vE,vW,                    
            uNW,uNE,uSE,uSW,                
            mu_N,mu_NW,mu_NE,mu_S,mu_SE,mu_SW, //actual mu values
            mu_W,mu_E,                         //interpolated mu values 
            rho_N,rho_S;
-  
+ 
+  double   * val_vP,
+           * val_vN,* val_vS,* val_vE,* val_vW,                    
+           * val_uNW,* val_uNE,* val_uSE,* val_uSW,                
+           * val_mu_N,* val_mu_NW,* val_mu_NE,* val_mu_S,* val_mu_SE,* val_mu_SW, //actual mu values
+           * val_rho_N,* val_rho_S;
 
-  for(l = 0;l<N_cells_v;l++)
+  //BC Setup
+  
+  //West Side 
+  
+  i = 0;
+  for(j=0;j<Ny_v;j++)
   {
-    if(v->bc_type[l] == NONE)
+    l = j*Nx_v + i;
+    v->val[l]   = (2*v->BC_Value[XMIN]) - v->val[l+1] ;
+    u->val[l-j] = u->BC_Value[XMIN];
+  }
+
+  //East Side 
+  
+  i = Nx_v - 1;
+  for(j=0;j<Ny_v;j++)
+  {
+    l = j*Nx_v + i;
+    v->val[l]     = (2*v->BC_Value[XMAX]) - v->val[l-1] ;
+    u->val[l-j-1] = u->BC_Value[XMAX];
+  }
+  
+
+  //South side 
+
+  j = 0;
+  for(i=0;i<Nx_v;i++)
+  {
+    l = j*Nx_v + i;
+    v->val[l] = v->BC_Value[YMIN];
+  }
+  
+  //North side 
+
+  j = Ny_v - 1;
+  for(i=0;i<Nx_v;i++)
+  {
+    l = j*Nx_v + i;
+    v->val[l] = v->BC_Value[YMAX];
+  }
+  
+  // Loops for all the inner cells 
+  
+  for(j=1;j<(Ny_v-1);j++)
+  {
+    row = j*Nx_v;
+
+    val_vP = &v->val[row];
+    val_vE = &v->val[row+1];
+    val_vW = &v->val[row-1];
+    val_vN = &v->val[row+Nx_v];
+    val_vS = &v->val[row-Nx_v];
+
+    val_uNE = &u->val[row+Nx_u-j];
+    val_uNW = &u->val[row+Nx_u-j-1];
+    val_uSE = &u->val[row-j];
+    val_uSW = &u->val[row-j-1];
+
+    val_mu_S  = &mu->val[row];
+    val_mu_SE = &mu->val[row+1];
+    val_mu_SW = &mu->val[row-1];
+    val_mu_N  = &mu->val[row+Nx_C];
+    val_mu_NE = &mu->val[row+Nx_C+1];
+    val_mu_NW = &mu->val[row+Nx_C-1];
+
+    val_rho_S  = &rho->val[row];
+    val_rho_N  = &rho->val[row+Nx_C];
+
+    
+    for(i=1;i<(Nx_v-1);i++)
     {
-        i = l%Nx_v;
-        j = (int) l/Nx_v;
-  
-        S = (j-1)*Nx_v + i;
-        N = (j+1)*Nx_v + i;
-        W = j*Nx_v + (i-1);      // or l-1
-        E = j*Nx_v + (i+1);      // or l+1
-  
-        SE =  l - j;
-        SW = SE - 1;
-        NE = SE + Nx_u;
-        NW = NE - 1;
+      l = j*Nx_v + i;
+     
+      vP = val_vP[i];
+      vE = val_vE[i];
+      vW = val_vW[i];
+      vN = val_vN[i];
+      vS = val_vS[i];
 
-        C_S  = l ; 
-        C_SW = C_S - 1;
-        C_SE = C_S + 1;
-        C_N  = C_S + Nx_C;
-        C_NE = C_N + 1;
-        C_NW = C_N - 1;     //for colocated variables(mu & rho) 
-  
-        vP = v->val[l];
-        
-        vE = v->val[E];
-        vW = v->val[W];
-        vN = v->val[N];
-        vS = v->val[S];
-  
-        uNE = u->val[NE];
-        uNW = u->val[NW];
-        uSE = u->val[SE];
-        uSW = u->val[SW];
-        
-        mu_NE = mu->val[C_NE];    
-        mu_NW = mu->val[C_NW];    
-        mu_N  = mu->val[C_N];  
-        mu_S  = mu->val[C_S]; 
-        mu_SE = mu->val[C_SE];  
-        mu_SW = mu->val[C_SW];        //actual mu values
-        
-        mu_W  = 0.25*( mu_N  + mu_NW + mu_S  + mu_SW  );
-        mu_E  = 0.25*( mu_N  + mu_NE + mu_SE + mu_S   );                        //interpolated mu values 
-        
-        rho_N = rho->val[C_N];
-        rho_S = rho->val[C_S];
+      uNE = val_uNE[i];
+      uNW = val_uNW[i];
+      uSE = val_uSE[i];
+      uSW = val_uSW[i];
 
-        
-        if( i == 1 || i == (Nx_v-2) || j == 1 || j == (Ny_v-2) ) // Next to boundary 
-        {
-            if(v->bc_type[W] != NONE)
-            {
-              vW  = (2* v->BC_Value[XMIN]) - vP;
-              uNW = u->BC_Value[XMIN];
-              uSW = u->BC_Value[XMIN];
-            }
-            if(v->bc_type[E] != NONE)
-            {
-              vE  = (2* v->BC_Value[XMAX]) - vP;
-              uSE = u->BC_Value[XMAX];
-              uNE = u->BC_Value[XMAX];
-            }
-            if(v->bc_type[N] != NONE)
-            { 
-  
-              vN  = v->BC_Value[YMAX];
-  
-            }
-            if(v->bc_type[S] != NONE)
-            {
-  
-              vS  = v->BC_Value[YMIN];
-  
-            }
-        }
+      mu_S  = val_mu_S[i]; 
+      mu_SE = val_mu_SE[i];
+      mu_SW = val_mu_SW[i];
+      mu_N  = val_mu_N[i]; 
+      mu_NE = val_mu_NE[i];
+      mu_NW = val_mu_NW[i];
 
-        v_T->val[l] = v_T->val[l] + 
+      rho_S  = val_rho_S[i]; 
+      rho_N  = val_rho_N[i]; 
+
+      mu_W  = 0.25*( mu_N  + mu_NW + mu_S  + mu_SW  );
+      mu_E  = 0.25*( mu_N  + mu_NE + mu_SE + mu_S   );                        //interpolated mu values 
+
+
+      v_T->val[l] = v_T->val[l] + 
                       (
                       (2.0/(rho_N+rho_S))*
                       ( (1/dx)*( mu_E*( ( (uNE-uSE)/dy ) + ( (vE-vP)/dx ) ) -
@@ -305,10 +353,10 @@ void Diffusion_v(Domain domain, Constant constant, Field * v_T)
                         (1/dy)*( 2*mu_N*( (vN - vP)/dy ) - 
                                  2*mu_S*( (vP - vS)/dy ) ) )
                       );
-      
+
+
     }
-  
-  }  
+  }
 
   return; 
 

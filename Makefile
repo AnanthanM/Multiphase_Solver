@@ -1,6 +1,6 @@
 NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
-RUNDIR	:= 100
+RUNDIR	:= 1000
 
 OBJECTS =  $(OBDIR)Helper_Functions.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o $(OBDIR)Diffusion.o $(OBDIR)BiCGSTAB.o $(OBDIR)Pressure.o
 
@@ -13,7 +13,9 @@ LIBPATH	= 	-L ~/
 LIBS	=	-lm -lvofi
 
 CC	:=	gcc 
-FLAGS	:=	  $(INCPATH) -g
+
+FLAGS	:=	  $(INCPATH) -g  -Wall -O3 -march=native -ftree-vectorize -ftree-vectorizer-verbose=1 -fopenmp
+
 LFLAGS	:=	$(LIBPATH) $(LIBS) 
 
 ####################################################################

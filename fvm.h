@@ -25,6 +25,19 @@ typedef enum
 
 typedef struct
 {
+  double * r0_cap;   
+  double * sj;       
+  double * rj;       
+  double * pj;       
+  double * pcap;     
+  double * scap;     
+  double * Ax_vector;
+  double * h;        
+  double * vj;       
+} Bicgstab;
+
+typedef struct
+{
   int N_x,N_y,N_z;
   int N;
   BC_Type *bc_type;
@@ -44,11 +57,15 @@ typedef struct
   Field * ny  ;
   Field * u_C ;
   Field * v_C ;
+
+  Bicgstab * PP;
 } Domain;
 
 void  Write_VTK(int,Domain,Constant);
 
 Field * Allocate_Field(int,int,int);
+
+Bicgstab * Allocate_Bicgstab(int);
 
 void set_ghost_cells_type(Domain);
 
@@ -77,5 +94,7 @@ void Correction_Velocities(Domain,Constant);
 void Making_u_v_Collocated(Domain,Constant);
 
 void Validation_Data(Domain,Constant);
+
+double Continuity_Test(Domain,Constant);
 
 #endif

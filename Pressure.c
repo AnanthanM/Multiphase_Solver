@@ -33,34 +33,38 @@ void Get_RHS_of_Pressure_Poisson_Eqn(Domain domain,Field * RHS,Constant constant
 //          -----vS-----
 /********************************/
   int l,i,j;
-  int N,S,W,E;
+  int row;
+  double  * val_uE, * val_uW, * val_vN, * val_vS;
   double uE,uW,vN,vS;
 
   for(l = 0;l<N_cells_C;l++)
   {
-    if(p->bc_type[l] == NONE)
-    {
-        i = l%Nx_C;
-        j = (int) l/Nx_C;
-
-        N = l;
-        S = l - Nx_v;
-        E = l - j;
-        W = E - 1;
-
-        uE = u->val[E];
-        uW = u->val[W];
-        vN = v->val[N];
-        vS = v->val[S];
-
-        RHS->val[l] = ( 1/(2*dt) ) * ( (uE - uW)/dx + (vN - vS)/dy ) ;
-    }
-    else
-    {
-        RHS->val[l] = 0.0;
-    }
+    RHS->val[l] = 0.0;
   }
 
+  for(j=1;j<(Ny_C-1);j++)
+  {
+    row = j*Nx_C;              // interms of colocated grid
+
+    val_uE = &u->val[row-j];
+    val_uW = &u->val[row-j-1];
+    val_vN = &v->val[row];       
+    val_vS = &v->val[row-Nx_v];
+
+    for(i=1;i<(Nx_C-1);i++)
+    {
+      l = j*Nx_C + i;
+
+      uE = val_uE[i];
+      uW = val_uW[i];
+      vN = val_vN[i];
+      vS = val_vS[i];
+
+      RHS->val[l] = ( 1/(2*dt) ) * ( (uE - uW)/dx + (vN - vS)/dy ) ;
+
+    }
+  }
+  
   return;
 }
 
@@ -76,8 +80,6 @@ void Pressure_Poisson(Field * p, Constant constant,double * Ap_vector,Domain dom
   int Ny_C         = rho->N_y;
 
   int l,i,j;
-
-  int      N,S,E,W;                       //for rho values
   
   double   pP,
            pN,pS,pE,pW;                  
@@ -86,60 +88,98 @@ void Pressure_Poisson(Field * p, Constant constant,double * Ap_vector,Domain dom
            rhoN,rhoS,rhoE,rhoW;                  
 
   double   aP,
-           aN,aS,aE,aW;                  
+           aN,aS,aE,aW;    
+
+  int      row;
+
+  double   * val_pP, * val_pE, * val_pW, * val_pN, * val_pS;
+  double   * val_rhoP, * val_rhoE, * val_rhoW, * val_rhoN, * val_rhoS;
+
+
+  for(l=0;l<N_cells_C;l++)
+    Ap_vector[l] = 0.0;
+
+  //BC Setup
   
-  for(l = 0;l<N_cells_C;l++)
+  //West Side Neumann 
+  
+  i = 0;
+  for(j=0;j<Ny_C;j++)
   {
-    if(p->bc_type[l] == NONE)
-    {
-        i = l%Nx_C;
-        j = (int) l/Nx_C;
-  
-        S = (j-1)*Nx_C + i;
-        N = (j+1)*Nx_C + i;
-        W = j*Nx_C + (i-1);      // or l-1
-        E = j*Nx_C + (i+1);      // or l+1
-        
-        rhoP =rho->val[l];
-        rhoE =rho->val[E];
-        rhoW =rho->val[W];
-        rhoN =rho->val[N];
-        rhoS =rho->val[S];
-        
-        aE = ( (1/(dx*dx))*(1/(rhoE+rhoP)) );  
-        aW = ( (1/(dx*dx))*(1/(rhoP+rhoW)) );  
-        aN = ( (1/(dy*dy))*(1/(rhoN+rhoP)) );  
-        aS = ( (1/(dy*dy))*(1/(rhoP+rhoS)) );
-        aP = aE + aW + aN + aS ;
- 
-        pP =p->val[l];
-        pE =p->val[E];
-        pW =p->val[W];
-        pN =p->val[N];
-        pS =p->val[S];
-
-        if(p->bc_type[N] != NONE)
-          pN = pP;
-
-        if(p->bc_type[S] != NONE)
-          pS = pP;
-
-        if(p->bc_type[E] != NONE)
-          pE = pP;
-
-        if(p->bc_type[W] != NONE)
-          pW = pP;
-        
-        Ap_vector[l] = -pP*aP + pE*aE + pW*aW + pN*aN + pS*aS; 
-
-    }
-    else
-    {
-        Ap_vector[l] = 0.0;
-    }
-    
+    l = j*Nx_C + i;
+    p->val[l] = p->val[l+1];
   }
 
+  //East Side Neumann
+  
+  i = Nx_C - 1;
+  for(j=0;j<Ny_C;j++)
+  {
+    l = j*Nx_C + i;
+    p->val[l] = p->val[l-1];
+  }
+  
+  //South side Neumann
+
+  j = 0;
+  for(i=0;i<Nx_C;i++)
+  {
+    l = j*Nx_C + i;
+    p->val[l] = p->val[l+Nx_C];
+  }
+  
+  //North side Neumann
+
+  j = Ny_C - 1;
+  for(i=0;i<Nx_C;i++)
+  {
+    l = j*Nx_C + i;
+    p->val[l] = p->val[l-Nx_C];
+  }
+  
+  // Loops for all the inner cells 
+  
+  for(j=1;j<(Ny_C-1);j++)
+  {
+    row = j*Nx_C;
+
+    val_pP = &p->val[row];
+    val_pE = &p->val[row+1];
+    val_pW = &p->val[row-1];
+    val_pN = &p->val[row+Nx_C];
+    val_pS = &p->val[row-Nx_C];
+
+    val_rhoP = &rho->val[row];
+    val_rhoE = &rho->val[row+1];
+    val_rhoW = &rho->val[row-1];
+    val_rhoN = &rho->val[row+Nx_C];
+    val_rhoS = &rho->val[row-Nx_C];
+    
+    for(i=1;i<(Nx_C-1);i++)
+    {
+      l = j*Nx_C + i;
+
+      pP = val_pP[i];
+      pE = val_pE[i];
+      pW = val_pW[i];
+      pN = val_pN[i];
+      pS = val_pS[i];
+
+      rhoP = val_rhoP[i];
+      rhoE = val_rhoE[i];
+      rhoW = val_rhoW[i];
+      rhoN = val_rhoN[i];
+      rhoS = val_rhoS[i]; 
+      
+      aE = ( (1/(dx*dx))*(1/(rhoE+rhoP)) );  
+      aW = ( (1/(dx*dx))*(1/(rhoP+rhoW)) );  
+      aN = ( (1/(dy*dy))*(1/(rhoN+rhoP)) );  
+      aS = ( (1/(dy*dy))*(1/(rhoP+rhoS)) );
+      aP = aE + aW + aN + aS ;
+
+      Ap_vector[l] = -pP*aP + pE*aE + pW*aW + pN*aN + pS*aS; 
+    }
+  }
   return;
 
 }  

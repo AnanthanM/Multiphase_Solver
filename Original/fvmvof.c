@@ -28,7 +28,7 @@ double start_wall_time = omp_get_wtime();
   int N_cells = N_cells_x *  N_cells_y * N_cells_z;
   
   constant.dx = l_x / (N_cells_x-2); constant.dy = l_y / (N_cells_y-2);
-  constant.dz = 1.0; constant.dt = 0.002; constant.nu = 0.01;
+  constant.dz = 1.0; constant.dt = 0.002; constant.nu = 0.001;
   
   Field * p   = allocate_field( N_cells_x, N_cells_y, N_cells_z);
   Field * u_x = allocate_field( N_cells_x, N_cells_y, N_cells_z);
@@ -82,10 +82,10 @@ double start_wall_time = omp_get_wtime();
     //advection
   int qq=0, test;
   double time = 0.0;
-  double end_time = 10.0;
+  double end_time = 66.0;
 
   while (time <= end_time){
-    if(qq%500 == 0)  
+    if(qq%5000 == 0)  
       write_vtk(qq, domain, constant); 
 
     for(i=0;i<N_cells;i++){

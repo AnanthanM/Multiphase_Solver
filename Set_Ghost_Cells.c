@@ -120,24 +120,43 @@ void set_ghost_cells_value(Field * phi)
   int N_Cells_x = phi->N_x;
   int N_Cells_y = phi->N_y;
   int N_Cells   = N_Cells_x*N_Cells_y;
+
+  //BC Value Setup
   
-  for(l=0;l<N_Cells;l++)
+  //West Side  
+  
+  i = 0;
+  for(j=0;j<N_Cells_y;j++)
   {
-    i = l%N_Cells_x;
-    j = (int) l/N_Cells_x;
-    
-    if(phi->bc_type[l] != NONE)
-    {
-      if(i==0)
-        phi->val[l] = phi->BC_Value[XMIN];
-      if(i==(N_Cells_x-1))
-        phi->val[l] = phi->BC_Value[XMAX];
-      if(j==0)
-        phi->val[l] = phi->BC_Value[YMIN];
-      if(j==(N_Cells_y-1))
-        phi->val[l] = phi->BC_Value[YMAX];
-    }
+    l = j*N_Cells_x + i;
+    phi->val[l] = phi->BC_Value[XMIN];
   }
 
+  //East Side 
+  
+  i = N_Cells_x - 1;
+  for(j=0;j<N_Cells_y;j++)
+  {
+    l = j*N_Cells_x + i;
+    phi->val[l] = phi->BC_Value[XMAX];
+  }
+  
+  //South side 
+
+  j = 0;
+  for(i=0;i<N_Cells_x;i++)
+  {
+    l = j*N_Cells_x + i;
+    phi->val[l] = phi->BC_Value[YMIN];
+  }
+  
+  //North side 
+
+  j = N_Cells_y - 1;
+  for(i=0;i<N_Cells_x;i++)
+  {
+    l = j*N_Cells_x + i;
+    phi->val[l] = phi->BC_Value[YMAX];
+  }
   return;
 }

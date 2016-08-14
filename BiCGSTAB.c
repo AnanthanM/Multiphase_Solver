@@ -22,17 +22,18 @@ int solve_Pressure_Poisson_BiCGSTAB(Field *x, Field *rhs, Constant constant, Dom
   int    N =  x->N;
  
   double * b = rhs->val;
+  
+  Bicgstab * PP = domain.PP;
 
-  r0_cap     = malloc(N*sizeof(double));
-  sj         = malloc(N*sizeof(double));
-  rj         = malloc(N*sizeof(double));
-  pj         = malloc(N*sizeof(double));
-  pcap       = malloc(N*sizeof(double));
-  scap       = malloc(N*sizeof(double));
-  Ax_vector  = malloc(N*sizeof(double));
-  h          = malloc(N*sizeof(double));
-  vj         = malloc(N*sizeof(double));
-
+  r0_cap     = &PP->r0_cap[0];
+  rj         = &PP->rj[0];
+  pcap       = &PP->pcap[0];
+  scap       = &PP->scap[0];
+  Ax_vector  = &PP->Ax_vector[0];
+  h          = &PP->h[0];
+  vj         = &PP->vj[0];
+  sj         = &PP->sj[0];
+  pj         = &PP->pj[0];
   
   for(i = 0 ; i < N ; i++) 
   {
@@ -150,15 +151,5 @@ int solve_Pressure_Poisson_BiCGSTAB(Field *x, Field *rhs, Constant constant, Dom
   for(i = 0 ; i < N ; i++)
     x->val[i] = h[i] ;
   
-  free(r0_cap);
-  free(sj);
-  free(rj);
-  free(pj);
-  free(pcap);
-  free(scap);
-  free(Ax_vector);
-  free(h);
-  free(vj);
-
   return 0;
 }

@@ -13,33 +13,35 @@
  *  
  ****************************************************************************/  
 
-
-
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 #include<string.h>
 #include<stdbool.h>
+#include <omp.h>
 
 #include "fvm.h"
 
-#define RHO1 1      //For which C = 1
-#define RHO2 1      //For which C = 0
-#define MU1  0.01  //For which C = 1
-#define MU2  0.01  //For which C = 0
-#define g_x  0.0    //Body forces in x-direction
-#define g_y  10.0   //Body forces in y direction
+#define RHO1     1      //For which C = 1
+#define RHO2     1      //For which C = 0
+#define MU1      0.001  //For which C = 1
+#define MU2      0.001  //For which C = 0
+#define g_x      0.0    //Body forces in x-direction
+#define g_y      10.0   //Body forces in y direction
 
 
 int main(int argc, char *argv[])
 {
+  double start_wall_time = omp_get_wtime();
+  
   Constant constant;
   Domain   domain; 
 
   double L_x = 1.0;                                                    // Domain Dimensions
   double L_y = 1.0;
-  
+
+  double epsilon  = 1.0E-7;
+
   int N_cells_x   = 140+2;                                            //For the entire domain for colocated variables
   int N_cells_x_u = N_cells_x - 1;                                     //For staggered u velocity
   int N_cells_y   = 140+2;                                            //For the entire domain for colocated variablesy
@@ -85,6 +87,8 @@ int main(int argc, char *argv[])
   Field * C      = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * nx     = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   Field * ny     = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
+  
+  Bicgstab * PP = Allocate_Bicgstab( N_cells ); 
  
   /*****Initialising the Domain struct***************/
 
@@ -99,6 +103,8 @@ int main(int argc, char *argv[])
   domain.u_C = u_C;
   domain.v_C = v_C;
 
+  domain.PP  = PP;
+  
   /****Ghost cell types are set for each Field*********/
 
   set_ghost_cells_type(domain);
@@ -112,7 +118,6 @@ int main(int argc, char *argv[])
 // i = 3 -> YMAX -> top
   for(i=0;i<4;i++)
   {
-//  For Staggered grid we dont need value of pressure at ghost cells
     p->BC_Value[i]   = 0.0;
     rho->BC_Value[i] = RHO2;
     mu->BC_Value[i]  = MU2;
@@ -126,8 +131,6 @@ int main(int argc, char *argv[])
   u->BC_Value[YMAX] = 1;         // Means that u velocity would have  
                                  // magnitude 1 in top horizontal side
 
-
-// GCs values not needed for p
   set_ghost_cells_value(p);
   set_ghost_cells_value(u);
   set_ghost_cells_value(v);
@@ -163,6 +166,7 @@ int main(int argc, char *argv[])
   }
 
   int N_cells_uv = u->N;
+  
   for(i=0;i < N_cells_uv;i++)
   {
     if(u->bc_type[i] == NONE)
@@ -170,9 +174,8 @@ int main(int argc, char *argv[])
     if(v->bc_type[i] == NONE)
       v->val[i] = 0.0;
   }
-
-  
-  double final_time = 66.0;
+ 
+  double final_time =  66.0;
   double time       =  0.0;
 
 /******STARTING*******/  
@@ -183,6 +186,7 @@ int main(int argc, char *argv[])
   int N_cells_u = u->N;
   int N_cells_v = v->N;
   double dt     = constant.dt;
+  double norm;
 
   while(time < (final_time+dt/2) ) 
   { 
@@ -221,10 +225,22 @@ int main(int argc, char *argv[])
     /********Getting Final Velocities**********/
     Correction_Velocities(domain,constant);
 
+    /********Continuity Test*********************/
+    norm = Continuity_Test(domain,constant);
+    if( norm >= epsilon )
+    {
+      printf("At time %2.8lf ERROR N-S eqn Crashed\n",time);
+      break;
+    }
+    printf("At time %2.8lf RMS of DivU is %2.8lf \n",time,norm);
+    
     /*********Writing Output*************************/
     printf("\n At %2.8lf N-S equations solved \n ",time);
-    if( (si_no-1)%2 == 0)
-    {
+    if( (si_no-1)%5000 == 0)
+    { 
+      set_ghost_cells_value(p);
+      set_ghost_cells_value(u);
+      set_ghost_cells_value(v);
       Write_VTK(si_no,domain,constant); 
       printf("At time %2.8lf VTK file is written \n",time);
     }
@@ -237,6 +253,7 @@ int main(int argc, char *argv[])
   /***********Write Validation data**************/
   Validation_Data(domain,constant); 
 
+  printf("Time taken for the simulation: %lf", omp_get_wtime() - start_wall_time);
   return 0;
 }
 

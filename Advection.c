@@ -41,72 +41,92 @@ void Advection_u(Domain domain, Constant constant, Field * u_T)
 /*******************************/  
   int i,j,l;
 
-  int      E,  W,  N,  S,      // for u velocities   
-          NE, NW, SE, SW;      // for v velocities
+  int row;
+
   double u_p,
          u_e, u_w, u_n, u_s,
          v_ne,v_nw,v_se,v_sw;
 
-  for(l = 0;l<N_cells_u;l++)
+  double * val_u_p,
+         * val_u_e, * val_u_w, * val_u_n, * val_u_s,
+         * val_v_ne,* val_v_nw,* val_v_se,* val_v_sw;
+ 
+  //BC Setup
+  
+  //West Side 
+  
+  i = 0;
+  for(j=0;j<Ny_u;j++)
   {
-    if(u->bc_type[l] == NONE)
+    l = j*Nx_u + i;
+    u->val[l] = u->BC_Value[XMIN];
+  }
+
+  //East Side 
+  
+  i = Nx_u - 1;
+  for(j=0;j<Ny_u;j++)
+  {
+    l = j*Nx_u + i;
+    u->val[l] = u->BC_Value[XMAX];
+  }
+  
+
+  //South side 
+
+  j = 0;
+  for(i=0;i<Nx_u;i++)
+  {
+    l = j*Nx_u + i;
+    u->val[l]   = (2*u->BC_Value[YMIN]) - u->val[l+Nx_u];
+    v->val[l+1] = v->BC_Value[YMIN];
+  }
+  
+  //North side 
+
+  j = Ny_u - 1;
+  for(i=0;i<Nx_u;i++)
+  {
+    l = j*Nx_u + i;
+    u->val[l]   = (2*u->BC_Value[YMAX]) - u->val[l-Nx_u];
+    v->val[l-1] = v->BC_Value[YMAX];
+  }
+  
+  // Loops for all the inner cells 
+  
+  for(j=1;j<(Ny_u-1);j++)
+  {
+    row = j*Nx_u;
+
+    val_u_p = &u->val[row];
+    val_u_e = &u->val[row+1];
+    val_u_w = &u->val[row-1];
+    val_u_n = &u->val[row+Nx_u];
+    val_u_s = &u->val[row-Nx_u];
+
+    val_v_nw = &v->val[row+j];
+    val_v_ne = &v->val[row+j+1];
+    val_v_sw = &v->val[row+j-Nx_v];
+    val_v_se = &v->val[row+j-Nx_v+1];
+    
+    for(i=1;i<(Nx_u-1);i++)
     {
-        i = l%Nx_u;
-        j = (int) l/Nx_u;
-  
-        S = (j-1)*Nx_u + i;
-        N = (j+1)*Nx_u + i;
-        W = j*Nx_u + (i-1);      // or l-1
-        E = j*Nx_u + (i+1);      // or l+1
-  
-        NW =  l + j;
-        NE = NW + 1;
-        SW = NW - Nx_v;
-        SE = SW + 1;
-  
-        u_p = u->val[l];
-        
-        u_e = u->val[E];
-        u_w = u->val[W];
-        u_n = u->val[N];
-        u_s = u->val[S];
-  
-        v_ne = v->val[NE];
-        v_nw = v->val[NW];
-        v_se = v->val[SE];
-        v_sw = v->val[SW];
-        
-        if( i == 1 || i == (Nx_u-2) || j == 1 || j == (Ny_u-2) ) // Next to boundary 
-        {
-            if(u->bc_type[N] != NONE)
-            {
-              u_n  = (2* u->BC_Value[YMAX]) - u_p;
-              v_nw = v->BC_Value[YMAX];
-              v_ne = v->BC_Value[YMAX];
-            }
-            if(u->bc_type[S] != NONE)
-            {
-              u_s  = (2* u->BC_Value[YMIN]) - u_p;
-              v_sw = v->BC_Value[YMIN];
-              v_se = v->BC_Value[YMIN];
-            }
-            if(u->bc_type[W] != NONE)
-            { 
-  
-              u_w  = u->BC_Value[XMIN];
-  
-            }
-            if(u->bc_type[E] != NONE)
-            {
-  
-              u_e  = u->BC_Value[XMAX];
-  
-            }
-        }
-  
-        u_T->val[l] = -1*( (1/dx)*( ((u_e+u_p)/2)*((u_e+u_p)/2) - ((u_p+u_w)/2)*((u_p+u_w)/2) ) + 
+      l = j*Nx_u + i;
+     
+      u_p = val_u_p[i];
+      u_e = val_u_e[i];
+      u_w = val_u_w[i];
+      u_n = val_u_n[i];
+      u_s = val_u_s[i];
+
+      v_nw = val_v_nw[i];
+      v_ne = val_v_ne[i];
+      v_sw = val_v_sw[i];
+      v_se = val_v_se[i];
+
+      u_T->val[l] = -1*( (1/dx)*( ((u_e+u_p)/2)*((u_e+u_p)/2) - ((u_p+u_w)/2)*((u_p+u_w)/2) ) + 
                            (1/dy)*( ((u_n+u_p)/2)*((v_ne+v_nw)/2) - ((u_p+u_s)/2)*((v_se+v_sw)/2) ) ) ;
-      
+
     }
   }
 
@@ -147,72 +167,93 @@ void Advection_v(Domain domain, Constant constant, Field * v_T)
 
 /*******************************/  
   int i,j,l;
-  int      E,  W,  N,  S,      // for v velocities   
-          NE, NW, SE, SW;      // for u velocities
+
+  int row;
+
   double v_p,
          v_e, v_w, v_n, v_s,
          u_ne,u_nw,u_se,u_sw;
-
-  for(l = 0;l<N_cells_v;l++)
+  
+  double * val_v_p,
+         * val_v_e, * val_v_w, * val_v_n, * val_v_s,
+         * val_u_ne,* val_u_nw,* val_u_se,* val_u_sw;
+  
+  //BC Setup
+  
+  //West Side 
+  
+  i = 0;
+  for(j=0;j<Ny_v;j++)
   {
-    if(v->bc_type[l] == NONE)
-    {
-        i = l%Nx_v;
-        j = (int) l/Nx_v;
-  
-        S = (j-1)*Nx_v + i;
-        N = (j+1)*Nx_v + i;
-        W = j*Nx_v + (i-1);      // or l-1
-        E = j*Nx_v + (i+1);      // or l+1
-        
-        SE =  l - j;
-        SW = SE - 1;
-        NE = SE + Nx_u;
-        NW = NE - 1;
+    l = j*Nx_v + i;
+    v->val[l]   = (2*v->BC_Value[XMIN]) - v->val[l+1] ;
+    u->val[l-j] = u->BC_Value[XMIN];
+  }
 
-        v_p = v->val[l];
-        
-        v_e = v->val[E];
-        v_w = v->val[W];
-        v_n = v->val[N];
-        v_s = v->val[S];
+  //East Side 
   
-        u_ne = u->val[NE];
-        u_nw = u->val[NW];
-        u_se = u->val[SE];
-        u_sw = u->val[SW];
-        
-        if( i == 1 || i == (Nx_v-2) || j == 1 || j == (Ny_v-2) ) // Next to boundary 
-        {
-            if(v->bc_type[W] != NONE)
-            {
-              v_w  = (2* v->BC_Value[XMIN]) - v_p;
-              u_nw = u->BC_Value[XMIN];
-              u_sw = u->BC_Value[XMIN];
-            }
-            if(v->bc_type[E] != NONE)
-            {
-              v_e  = (2* v->BC_Value[XMAX]) - v_p;
-              u_se = u->BC_Value[XMAX];
-              u_ne = u->BC_Value[XMAX];
-            }
-            if(v->bc_type[N] != NONE)
-            { 
+  i = Nx_v - 1;
+  for(j=0;j<Ny_v;j++)
+  {
+    l = j*Nx_v + i;
+    v->val[l]     = (2*v->BC_Value[XMAX]) - v->val[l-1] ;
+    u->val[l-j-1] = u->BC_Value[XMAX];
+  }
   
-              v_n  = v->BC_Value[YMAX];
+
+  //South side 
+
+  j = 0;
+  for(i=0;i<Nx_v;i++)
+  {
+    l = j*Nx_v + i;
+    v->val[l] = v->BC_Value[YMIN];
+  }
   
-            }
-            if(v->bc_type[S] != NONE)
-            {
+  //North side 
+
+  j = Ny_v - 1;
+  for(i=0;i<Nx_v;i++)
+  {
+    l = j*Nx_v + i;
+    v->val[l] = v->BC_Value[YMAX];
+  }
   
-              v_s  = v->BC_Value[YMIN];
+  // Loops for all the inner cells 
   
-            }
-        }
-  
-        v_T->val[l] = -1*(  (1/dx)*( ((u_se+u_ne)/2)*((v_e+v_p)/2) - ((u_nw+u_sw)/2)*((v_p+v_w)/2) ) + 
-                            (1/dy)*( ((v_n+v_p)/2)*((v_n+v_p)/2) - ((v_p+v_s)/2)*((v_p+v_s)/2) ) );
-      
+  for(j=1;j<(Ny_v-1);j++)
+  {
+    row = j*Nx_v;
+
+    val_v_p = &v->val[row];
+    val_v_e = &v->val[row+1];
+    val_v_w = &v->val[row-1];
+    val_v_n = &v->val[row+Nx_v];
+    val_v_s = &v->val[row-Nx_v];
+
+    val_u_ne = &u->val[row+Nx_u-j];
+    val_u_nw = &u->val[row+Nx_u-j-1];
+    val_u_se = &u->val[row-j];
+    val_u_sw = &u->val[row-j-1];
+    
+    for(i=1;i<(Nx_v-1);i++)
+    {
+      l = j*Nx_v + i;
+     
+      v_p = val_v_p[i];
+      v_e = val_v_e[i];
+      v_w = val_v_w[i];
+      v_n = val_v_n[i];
+      v_s = val_v_s[i];
+
+      u_nw = val_u_nw[i];
+      u_ne = val_u_ne[i];
+      u_sw = val_u_sw[i];
+      u_se = val_u_se[i];
+
+      v_T->val[l] = -1*(  (1/dx)*( ((u_se+u_ne)/2)*((v_e+v_p)/2) - ((u_nw+u_sw)/2)*((v_p+v_w)/2) ) + 
+                          (1/dy)*( ((v_n+v_p)/2)*((v_n+v_p)/2)   - ((v_p+v_s)/2)*((v_p+v_s)/2) ) );
+
     }
   }
 

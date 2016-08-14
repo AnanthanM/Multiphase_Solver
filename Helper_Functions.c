@@ -27,6 +27,29 @@ Field * Allocate_Field(int N_x,int N_y,int N_z)
   return phi;
 }
 
+// Allocates struct Bicgstab which contains arrays necessary
+// for BiCGSTAB Solver, Takes input as an integer
+
+Bicgstab * Allocate_Bicgstab(int N)
+{
+  Bicgstab * phi;
+
+  phi             = malloc(sizeof(Bicgstab));
+
+  phi->r0_cap     = malloc(N*sizeof(double));
+  phi->sj         = malloc(N*sizeof(double));
+  phi->rj         = malloc(N*sizeof(double));
+  phi->pj         = malloc(N*sizeof(double));
+  phi->pcap       = malloc(N*sizeof(double));
+  phi->scap       = malloc(N*sizeof(double));
+  phi->Ax_vector  = malloc(N*sizeof(double));
+  phi->h          = malloc(N*sizeof(double));
+  phi->vj         = malloc(N*sizeof(double));
+
+  return phi;
+}
+
+//The Final velocity un+1 is obtained 
 void Correction_Velocities(Domain domain,Constant constant)
 {
   Field * u   = domain.u;
@@ -177,8 +200,73 @@ void Validation_Data(Domain domain, Constant constant)
 
 }
 
+//Continuity Test
+//After each sucessfull iteration un+1 values are used to
+//check the continuity eaquation
 
+double Continuity_Test(Domain domain, Constant constant)
+{
+  Field * u = domain.u;
+  Field * v = domain.v;
+  Field * p = domain.p; 
 
+  double dx = constant.dx;
+  double dy = constant.dy;
+  double dt = constant.dt;
+  
+  int Nx_v      = v->N_x;
+  int Nx_u      = u->N_x; 
+  int N_cells_C = p->N;
+  int Nx_C      = p->N_x;
+  int Ny_C      = p->N_y;
+
+/********************************/
+//           --- vN-----
+//          |     |    |
+//          uW---pij---uE
+//          |     |    |
+//          -----vS-----
+/********************************/
+  int l,i,j;
+  int N,S,W,E;
+  double uE,uW,vN,vS;
+
+  double * DivU = malloc(N_cells_C*sizeof(double));
+  double norm = 0.0;
+
+  for(l = 0;l<N_cells_C;l++)
+  {
+    if(p->bc_type[l] == NONE)
+    {
+        i = l%Nx_C;
+        j = (int) l/Nx_C;
+
+        N = l;
+        S = l - Nx_v;
+        E = l - j;
+        W = E - 1;
+
+        uE = u->val[E];
+        uW = u->val[W];
+        vN = v->val[N];
+        vS = v->val[S];
+
+        DivU[l] = ( (uE - uW)/dx + (vN - vS)/dy ) ;
+    }
+    else
+    {
+        DivU[l] = 0.0;
+    }
+  }
+  
+  for(l=0;l<N_cells_C;l++)
+    norm += DivU[l]*DivU[l];
+
+  norm = sqrt(norm/((double)N_cells_C)) ;
+
+  return norm;
+
+}
 
 
 
