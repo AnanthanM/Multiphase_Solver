@@ -83,6 +83,8 @@ void Diffusion_u(Domain,Constant,Field *);
 
 void Diffusion_v(Domain,Constant,Field *);
 
+void Get_VelocityStar(Domain,Constant,Field *,Field *);
+
 int  solve_Pressure_Poisson_BiCGSTAB(Field *,Field *,Constant,Domain); 
 
 void Get_RHS_of_Pressure_Poisson_Eqn(Domain,Field *,Constant);
@@ -95,6 +97,6 @@ void Making_u_v_Collocated(Domain,Constant);
 
 void Validation_Data(Domain,Constant);
 
-double Continuity_Test(Domain,Constant);
+double Continuity_Test(double *,Domain,Constant);
 
 #endif

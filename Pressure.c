@@ -20,7 +20,6 @@ void Get_RHS_of_Pressure_Poisson_Eqn(Domain domain,Field * RHS,Constant constant
   double dt = constant.dt;
   
   int Nx_v      = v->N_x;
-  int Nx_u      = u->N_x; 
   int N_cells_C = p->N;
   int Nx_C      = p->N_x;
   int Ny_C      = p->N_y;

@@ -49,6 +49,53 @@ Bicgstab * Allocate_Bicgstab(int N)
   return phi;
 }
 
+// Intermediate velocities ustar and vstar are obtained
+
+void Get_VelocityStar(Domain domain,Constant constant,Field * ustar,Field * vstar)
+{
+  
+  Field * u   = domain.u;
+  Field * v   = domain.v;
+
+  double dt = constant.dt;
+
+  int Nx_u    = u->N_x;
+  int Ny_u    = u->N_y;
+  int Nx_v    = v->N_x; 
+  int Ny_v    = v->N_y;
+
+  int i,j,l;
+
+
+  // Loops for all the inner cells for u velocity 
+  
+  for(j=1;j<(Ny_u-1);j++)
+  {
+     
+    for(i=1;i<(Nx_u-1);i++)
+    {
+      l = j*Nx_u + i;
+
+      u->val[l] = u->val[l] + dt*(ustar->val[l]) ;    
+    }
+  }
+
+  // Loops for all the inner cells for velocity v 
+  
+  for(j=1;j<(Ny_v-1);j++)
+  {
+
+    for(i=1;i<(Nx_v-1);i++)
+    {
+      l = j*Nx_v + i;
+     
+      v->val[l] = v->val[l] + dt*(vstar->val[l]) ;
+    }
+  }
+  
+  return;
+}
+
 //The Final velocity un+1 is obtained 
 void Correction_Velocities(Domain domain,Constant constant)
 {
@@ -61,62 +108,80 @@ void Correction_Velocities(Domain domain,Constant constant)
   double dy = constant.dy;
   double dt = constant.dt;
 
-  int N_cells = u->N;      // Since total no of cells for both u and v are same 
   int Nx_u    = u->N_x;
   int Ny_u    = u->N_y;
   int Nx_v    = v->N_x; 
   int Ny_v    = v->N_y;
   int N_x_p   = p->N_x;
 
-  int l,i,j;
-  int E,W;       //p values for u correction
-  int N,S;       //p values for v correction
+  int i,j,l;
+
+  int row;
  
   double pN,pS;  // for v
   double pE,pW;  // for u
 
   double rhoN,rhoS;  // for v
   double rhoE,rhoW;  // for u
+
+  double * val_pN,* val_pS;  // for v
+  double * val_pE,* val_pW;  // for u
+
+  double * val_rhoN,* val_rhoS;  // for v
+  double * val_rhoE,* val_rhoW;  // for u
   
-  for(l = 0;l<N_cells;l++)
+  // Loops for all the inner cells for u velocity 
+  
+  for(j=1;j<(Ny_u-1);j++)
   {
-    if(u->bc_type[l] == NONE)
+    row = j*Nx_u;
+    
+    val_pW = &p->val[row+j];
+    val_pE = &p->val[row+j+1];
+    
+    val_rhoW  = &rho->val[row+j];
+    val_rhoE  = &rho->val[row+j+1];
+    
+    for(i=1;i<(Nx_u-1);i++)
     {
-        i = l%Nx_u;
-        j = (int) l/Nx_u;
+      l = j*Nx_u + i;
 
-        W = l + j;
-        E = W + 1;
+      pW = val_pW[i];
+      pE = val_pE[i];
+                   
+      rhoW = val_rhoW[i];
+      rhoE = val_rhoE[i];
 
-        pE = p->val[E];
-        pW = p->val[W];
-        
-        rhoE = rho->val[E];
-        rhoW = rho->val[W];
-
-        u->val[l] = u->val[l] - ( dt/(0.5*(rhoE+rhoW)) )*( (pE-pW)/dx );
-
+      u->val[l] = u->val[l] - ( dt/(0.5*(rhoE+rhoW)) )*( (pE-pW)/dx );
     }
-
-    if(v->bc_type[l] == NONE)
-    {
-        i = l%Nx_v;
-        j = (int) l/Nx_v;
-
-        S = l ;
-        N = S + N_x_p;
-
-        pN = p->val[N];
-        pS = p->val[S];
-        
-        rhoN = rho->val[N];
-        rhoS = rho->val[S];
-
-        v->val[l] = v->val[l] - ( dt/(0.5*(rhoN+rhoS)) )*( (pN-pS)/dy );
-
-    }    
   }
 
+
+  // Loops for all the inner cells for velocity v 
+  
+  for(j=1;j<(Ny_v-1);j++)
+  {
+    row = j*Nx_v;
+
+    val_rhoS  = &rho->val[row];
+    val_rhoN  = &rho->val[row+N_x_p];
+
+    val_pS  = &p->val[row];
+    val_pN  = &p->val[row+N_x_p];
+    
+    for(i=1;i<(Nx_v-1);i++)
+    {
+      l = j*Nx_v + i;
+     
+      pS  = val_pS[i]; 
+      pN  = val_pN[i]; 
+
+      rhoS  = val_rhoS[i]; 
+      rhoN  = val_rhoN[i]; 
+
+      v->val[l] = v->val[l] - ( dt/(0.5*(rhoN+rhoS)) )*( (pN-pS)/dy );
+    }
+  }
   return;
 
 }
@@ -204,7 +269,7 @@ void Validation_Data(Domain domain, Constant constant)
 //After each sucessfull iteration un+1 values are used to
 //check the continuity eaquation
 
-double Continuity_Test(Domain domain, Constant constant)
+double Continuity_Test(double * DivU,Domain domain, Constant constant)
 {
   Field * u = domain.u;
   Field * v = domain.v;
@@ -212,10 +277,8 @@ double Continuity_Test(Domain domain, Constant constant)
 
   double dx = constant.dx;
   double dy = constant.dy;
-  double dt = constant.dt;
   
   int Nx_v      = v->N_x;
-  int Nx_u      = u->N_x; 
   int N_cells_C = p->N;
   int Nx_C      = p->N_x;
   int Ny_C      = p->N_y;
@@ -228,37 +291,44 @@ double Continuity_Test(Domain domain, Constant constant)
 //          -----vS-----
 /********************************/
   int l,i,j;
-  int N,S,W,E;
-  double uE,uW,vN,vS;
 
-  double * DivU = malloc(N_cells_C*sizeof(double));
+  int row;
+
+  double uE,uW,vN,vS;
+ 
+  double * val_uE,* val_uW,* val_vN,* val_vS;
+  
   double norm = 0.0;
+
 
   for(l = 0;l<N_cells_C;l++)
   {
-    if(p->bc_type[l] == NONE)
+    DivU[l] = 0.0;
+  }
+
+  for(j=1;j<(Ny_C-1);j++)
+  {
+    row = j*Nx_C;              // interms of colocated grid
+
+    val_uE = &u->val[row-j];
+    val_uW = &u->val[row-j-1];
+    val_vN = &v->val[row];       
+    val_vS = &v->val[row-Nx_v];
+
+    for(i=1;i<(Nx_C-1);i++)
     {
-        i = l%Nx_C;
-        j = (int) l/Nx_C;
+      l = j*Nx_C + i;
 
-        N = l;
-        S = l - Nx_v;
-        E = l - j;
-        W = E - 1;
+      uE = val_uE[i];
+      uW = val_uW[i];
+      vN = val_vN[i];
+      vS = val_vS[i];
 
-        uE = u->val[E];
-        uW = u->val[W];
-        vN = v->val[N];
-        vS = v->val[S];
+      DivU[l] = ( (uE - uW)/dx + (vN - vS)/dy ) ;
 
-        DivU[l] = ( (uE - uW)/dx + (vN - vS)/dy ) ;
-    }
-    else
-    {
-        DivU[l] = 0.0;
     }
   }
-  
+
   for(l=0;l<N_cells_C;l++)
     norm += DivU[l]*DivU[l];
 

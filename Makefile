@@ -1,6 +1,6 @@
 NAME 	:= EXECUTABLE
 OBDIR	:= OBJ/
-RUNDIR	:= 1000
+RUNDIR	:= 400
 
 OBJECTS =  $(OBDIR)Helper_Functions.o $(OBDIR)VTK_Output.o $(OBDIR)Set_Ghost_Cells.o $(OBDIR)FVM.o $(OBDIR)VOF_Functions.o $(OBDIR)Advection.o $(OBDIR)Diffusion.o $(OBDIR)BiCGSTAB.o $(OBDIR)Pressure.o
 
@@ -69,5 +69,7 @@ clean:
 
 Delete_Results: 		
 	rm -f *~
-	rm $(RUNDIR)/*.vtk
-	rm $(RUNDIR)/$(NAME)
+	rm -r  $(RUNDIR)
+	rm -r  $(OBDIR)
+#	rm $(RUNDIR)/*.vtk
+#	rm $(RUNDIR)/$(NAME)

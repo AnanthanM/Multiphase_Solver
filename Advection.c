@@ -22,11 +22,9 @@ void Advection_u(Domain domain, Constant constant, Field * u_T)
   double dx = constant.dx;
   double dy = constant.dy;
 
-  int N_cells_u    = u->N;
   int Nx_u         = u->N_x;
   int Ny_u         = u->N_y;
   int Nx_v         = v->N_x; 
-  int Ny_v         = v->N_y; 
 
 /********************************/
            
@@ -149,11 +147,9 @@ void Advection_v(Domain domain, Constant constant, Field * v_T)
   double dx = constant.dx;
   double dy = constant.dy;
 
-  int N_cells_v    = v->N;
   int Nx_v         = v->N_x;
   int Ny_v         = v->N_y;
   int Nx_u         = u->N_x; 
-  int Ny_u         = u->N_y; 
 
 /********************************/
            

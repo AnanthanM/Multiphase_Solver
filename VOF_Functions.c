@@ -107,37 +107,59 @@ void Normals_Using_Youngs_Method(Domain domain,Constant constant)
   Field * nx = domain.nx;
   Field * ny = domain.ny;
 
-  int N_cells_x = C->N_x;
-  int N_cells_y = C->N_y;
-  int N_cells   = N_cells_x * N_cells_y;
-  
+  int Nx_C      = C->N_x;
+  int Ny_C      = C->N_y;
+
+  int l,i,j;
+
+  int row;
+
   double dx  = constant.dx;
   double dy  = constant.dy;
-
-  int l;
 
   double Cip1jp1,Cip1j,Cip1jm1,
          Cijp1,Cijm1,
          Cim1jp1,Cim1j,Cim1jm1;
 
-  for(l=0;l<N_cells;l++)
+  double * val_Cip1jp1,* val_Cip1j,* val_Cip1jm1,
+         * val_Cijp1,* val_Cijm1,
+         * val_Cim1jp1,* val_Cim1j,* val_Cim1jm1;
+
+
+  // Loops for all the inner cells 
+  
+  for(j=1;j<(Ny_C-1);j++)
   {
-    if(C->bc_type[l] == NONE)
+    row = j*Nx_C;
+    
+    val_Cijp1   = &C->val[row+Nx_C];
+    val_Cijm1   = &C->val[row-Nx_C];
+    val_Cip1jp1 = &C->val[row+Nx_C+1];
+    val_Cip1jm1 = &C->val[row-Nx_C+1];
+    val_Cim1jp1 = &C->val[row+Nx_C-1];
+    val_Cim1jm1 = &C->val[row-Nx_C-1];
+    val_Cip1j   = &C->val[row+1];
+    val_Cim1j   = &C->val[row-1];
+
+    for(i=1;i<(Nx_C-1);i++)
     {
-      Cip1jp1 = C->val[l+N_cells_x+1];
-      Cip1j   = C->val[l+1];
-      Cip1jm1 = C->val[l-N_cells_x+1];
-      Cijp1   = C->val[l+N_cells_x];
-      Cijm1   = C->val[l-N_cells_x];
-      Cim1jp1 = C->val[l+N_cells_x-1];
-      Cim1j   = C->val[l-1];
-      Cim1jm1 = C->val[l-N_cells_x-1];
+      l = j*Nx_C + i;
+      
+      Cijp1   = val_Cijp1[i];  
+      Cijm1   = val_Cijm1[i];  
+      Cip1jp1 = val_Cip1jp1[i];
+      Cip1jm1 = val_Cip1jm1[i];
+      Cim1jp1 = val_Cim1jp1[i];
+      Cim1jm1 = val_Cim1jm1[i];
+      Cip1j   = val_Cip1j[i];  
+      Cim1j   = val_Cim1j[i];  
 
       nx->val[l] = (1/dx)*( Cip1jp1 + 2*Cip1j + Cip1jm1 - Cim1jp1 - 2*Cim1j - Cim1jm1 );
       ny->val[l] = (1/dy)*( Cip1jp1 + 2*Cijp1 + Cim1jp1 - Cip1jm1 - 2*Cijm1 - Cim1jm1 );
-    }
-  }    
 
+    }
+  }
+  
   return;
 }
 

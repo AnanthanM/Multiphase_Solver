@@ -119,7 +119,6 @@ void set_ghost_cells_value(Field * phi)
 
   int N_Cells_x = phi->N_x;
   int N_Cells_y = phi->N_y;
-  int N_Cells   = N_Cells_x*N_Cells_y;
 
   //BC Value Setup
   

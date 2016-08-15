@@ -24,8 +24,8 @@
 
 #define RHO1     1      //For which C = 1
 #define RHO2     1      //For which C = 0
-#define MU1      0.001  //For which C = 1
-#define MU2      0.001  //For which C = 0
+#define MU1      0.0025  //For which C = 1
+#define MU2      0.0025  //For which C = 0
 #define g_x      0.0    //Body forces in x-direction
 #define g_y      10.0   //Body forces in y direction
 
@@ -89,6 +89,8 @@ int main(int argc, char *argv[])
   Field * ny     = Allocate_Field( N_cells_x, N_cells_y, N_cells_z );
   
   Bicgstab * PP = Allocate_Bicgstab( N_cells ); 
+  
+  double * DivU = malloc(N_cells*sizeof(double));
  
   /*****Initialising the Domain struct***************/
 
@@ -184,7 +186,6 @@ int main(int argc, char *argv[])
   int si_no     = 1;
   int test;      
   int N_cells_u = u->N;
-  int N_cells_v = v->N;
   double dt     = constant.dt;
   double norm;
 
@@ -192,10 +193,10 @@ int main(int argc, char *argv[])
   { 
 
     for(i=0;i<N_cells_u;i++)
-        ustar->val[i] = 0.0;
-
-    for(i=0;i<N_cells_v;i++)
-        vstar->val[i] = 0.0;
+    {
+      ustar->val[i] = 0.0;
+      vstar->val[i] = 0.0;
+    }
 
     /********ADVECTION*******************/
     Advection_u(domain,constant,ustar);
@@ -205,14 +206,9 @@ int main(int argc, char *argv[])
     Diffusion_u(domain,constant,ustar);
     Diffusion_v(domain,constant,vstar);
 
-    for(i=0;i<N_cells_u;i++)
-    {
-       if(u->bc_type[i] == NONE)
-         u->val[i] = u->val[i] + dt*(ustar->val[i]) ;    
-       if(v->bc_type[i] == NONE)
-         v->val[i] = v->val[i] + dt*(vstar->val[i]) ;
-    }
-    
+    /********Get Intermediate Velocity******/
+    Get_VelocityStar(domain,constant,ustar,vstar);
+
     /******Solving Pressure Poisson ********/
     Get_RHS_of_Pressure_Poisson_Eqn(domain,RHS,constant);
     test = solve_Pressure_Poisson_BiCGSTAB(p,RHS,constant,domain);
@@ -226,7 +222,7 @@ int main(int argc, char *argv[])
     Correction_Velocities(domain,constant);
 
     /********Continuity Test*********************/
-    norm = Continuity_Test(domain,constant);
+    norm = Continuity_Test(DivU,domain,constant);
     if( norm >= epsilon )
     {
       printf("At time %2.8lf ERROR N-S eqn Crashed\n",time);
