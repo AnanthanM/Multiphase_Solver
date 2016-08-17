@@ -142,10 +142,10 @@ int main(int argc, char *argv[])
   set_ghost_cells_value(nx);
   set_ghost_cells_value(ny);
 
-// Initiation_Void_Fraction(domain,constant);    // we use VOFI library to 
+  Initiation_Void_Fraction(domain,constant);    // we use VOFI library to 
                                                  // initialise C Field
 
-// Normals_Using_Youngs_Method(domain,constant); //We call a function to 
+  Normals_Using_Youngs_Method(domain,constant); //We call a function to 
                                                  // initialise normal fields 
 
 
@@ -155,15 +155,15 @@ int main(int argc, char *argv[])
     {
       p->val[i]   = 0.0; 
 //      C->val[i]   = Void_Fraction already initialised 
-      C->val[i]   = 0.0; 
+//      C->val[i]   = 0.0; 
 //      rho->val[i] = RHO1*C->val[i] + RHO2*(1-C->val[i]);  
 //      mu->val[i]  = MU1*C->val[i] + MU2*(1-C->val[i]); 
       rho->val[i] = RHO2;  
       mu->val[i]  = MU2; 
 //      nx->val[i]  = Normal_x already found 
 //      ny->val[i]  = Normal_y already found
-      nx->val[i]  = 0.0; 
-      ny->val[i]  = 0.0;
+//      nx->val[i]  = 0.0; 
+//      ny->val[i]  = 0.0;
     }
   }
 
